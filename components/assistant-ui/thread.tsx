@@ -19,6 +19,7 @@ import {
   ToolGroupRoot,
   ToolGroupTrigger,
 } from "@/components/assistant-ui/tool-group";
+import { MessageSources, SourcePart } from "@/components/assistant-ui/sources";
 import { TooltipIconButton } from "@/components/assistant-ui/tooltip-icon-button";
 import { AssistantWorkingIndicator } from "@/components/assistant-ui/working-indicator";
 import { AriaLogo } from "@/components/aria/aria-logo";
@@ -406,6 +407,8 @@ const AssistantMessage: FC = () => {
                 return <Reasoning {...part} />;
               case "tool-call":
                 return part.toolUI ?? <ToolFallbackComponent {...part} />;
+              case "source":
+                return <SourcePart {...part} />;
               case "data":
                 return part.dataRendererUI;
               case "indicator":
@@ -415,6 +418,7 @@ const AssistantMessage: FC = () => {
             }
           }}
         </MessagePrimitive.GroupedParts>
+        <MessageSources />
         <MessageError />
       </div>
 

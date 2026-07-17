@@ -26,7 +26,9 @@ export function WebSearchToggle() {
       )}
     >
       <GlobeIcon className="size-3.5 shrink-0 opacity-80" />
-      <span className="hidden sm:inline">Search</span>
+      <span className="hidden sm:inline">
+        {enabled ? "Search on" : "Search"}
+      </span>
     </Button>
   );
 }

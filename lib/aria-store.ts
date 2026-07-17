@@ -27,8 +27,15 @@ export const useAriaStore = create<AriaStore>()(
       deepResearch: false,
       setDeepResearch: (enabled) => set({ deepResearch: enabled }),
       toggleDeepResearch: () =>
-        set((s) => ({ deepResearch: !s.deepResearch })),
-      webSearch: false,
+        set((s) => {
+          const deepResearch = !s.deepResearch;
+          return {
+            deepResearch,
+            // Deep research requires live sources.
+            ...(deepResearch ? { webSearch: true } : {}),
+          };
+        }),
+      webSearch: true,
       setWebSearch: (enabled) => set({ webSearch: enabled }),
       toggleWebSearch: () => set((s) => ({ webSearch: !s.webSearch })),
       sidebarOpen: true,
@@ -39,7 +46,8 @@ export const useAriaStore = create<AriaStore>()(
         set((s) => ({ profile: { ...s.profile, ...updates } })),
     }),
     {
-      name: "aria-ui",
+      // Bump key so Search defaults ON after the web-search reliability fix.
+      name: "aria-ui-v2",
       partialize: (s) => ({
         modelId: s.modelId,
         deepResearch: s.deepResearch,
@@ -56,7 +64,12 @@ export const useAriaStore = create<AriaStore>()(
           ...state,
           modelId: resolveModelId(state.modelId ?? DEFAULT_MODEL_ID),
           deepResearch: Boolean(state.deepResearch),
-          webSearch: Boolean(state.webSearch),
+          // Default Search ON for new installs; keep an explicit false if the user turned it off.
+          webSearch:
+            typeof (persisted as Partial<AriaStore> | undefined)?.webSearch ===
+            "boolean"
+              ? Boolean(state.webSearch)
+              : true,
         };
       },
     },

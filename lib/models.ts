@@ -15,23 +15,22 @@ export const ARIA_MODELS: AriaModel[] = [
     name: "Aria Nano",
     description: "Fastest, great for everyday questions",
     provider: "google",
-    modelId: "gemini-3.1-flash-lite",
+    modelId: "gemini-3.1-flash-lite-preview",
   },
   {
     id: "aria-mini",
     name: "Aria Mini",
     description: "Balanced speed and reasoning",
     provider: "google",
-    // Temporary: Gemini for local testing (swap back to OpenAI when ready)
-    modelId: "gemini-2.5-flash",
+    // gemini-2.5-flash is unavailable to new API keys — use current Flash
+    modelId: "gemini-flash-latest",
   },
   {
     id: "aria-max",
     name: "Aria Max",
     description: "Most capable, deepest reasoning",
     provider: "google",
-    // Temporary: Gemini for local testing (swap back to OpenAI when ready)
-    modelId: "gemini-2.5-pro",
+    modelId: "gemini-pro-latest",
   },
 ];
 
