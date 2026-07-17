@@ -4,7 +4,6 @@ import { frontendTools } from "@assistant-ui/react-ai-sdk";
 import {
   streamText,
   convertToModelMessages,
-  type ToolSet,
   type UIMessage,
   type JSONSchema7,
 } from "ai";
@@ -29,22 +28,6 @@ function getLanguageModel(modelId: string, provider: "google" | "openai") {
     return google(modelId);
   }
   return openai(modelId);
-}
-
-function buildWebSearchTools(provider: "google" | "openai"): ToolSet {
-  if (provider === "google") {
-    return {
-      google_search: google.tools.googleSearch({
-        searchTypes: { webSearch: {} },
-      }),
-    };
-  }
-
-  return {
-    web_search: openai.tools.webSearch({
-      searchContextSize: "high",
-    }),
-  };
 }
 
 export async function POST(req: Request) {
@@ -93,13 +76,14 @@ export async function POST(req: Request) {
     const useDeepResearch = Boolean(deepResearch);
     const useWebSearch = Boolean(webSearch) || useDeepResearch;
 
-    // Free tier: keep Search on Gemini 3.1 Flash Lite (500 RPD).
+    // Free tier: answer with Flash Lite when Search is on.
     const answerModelId =
       useWebSearch && ariaModel.provider === "google"
         ? FREE_TIER_SEARCH_MODEL
         : ariaModel.modelId;
 
     let researchBlock: string | undefined;
+
     if (useWebSearch) {
       const query = getLastUserQuery(messages);
       if (query) {
@@ -111,6 +95,15 @@ export async function POST(req: Request) {
         });
         if (packet && (packet.findings || packet.sources.length > 0)) {
           researchBlock = formatResearchForSystem(packet);
+        } else {
+          // Never allow memory answers when Search is on but research failed.
+          return Response.json(
+            {
+              error:
+                "Web search could not retrieve live sources right now. Please try again in a moment.",
+            },
+            { status: 503 },
+          );
         }
       }
     }
@@ -120,29 +113,23 @@ export async function POST(req: Request) {
       useWebSearch ? WEB_SEARCH_SYSTEM : undefined,
       researchBlock,
       useWebSearch
-        ? researchBlock
-          ? "Web Search already ran. Answer ONLY from the verified web research above. Do not call tools. If research conflicts with memory, research wins."
-          : "Web Search is on. You MUST use the google_search tool before answering. Never invent founders or company leadership from memory."
+        ? "Web Search already ran against live pages. Answer ONLY from the verified web research above. Do not use memory. Do not invent people or roles. Include a short Sources list with the URLs provided."
         : undefined,
       system?.trim(),
     ]
       .filter(Boolean)
       .join("\n\n");
 
-    // If research already grounded the answer, skip a second google_search call
-    // (free-tier Search grounding quota is tighter than model RPD).
-    const requestTools = researchBlock
-      ? {}
-      : useWebSearch
-        ? buildWebSearchTools(ariaModel.provider)
-        : frontendTools(tools ?? {});
-
+    // No Gemini google_search tool — independent search already grounded the answer.
+    // This avoids free-tier Search grounding quota exhaustion and memory fallbacks.
     const result = streamText({
       model: getLanguageModel(answerModelId, ariaModel.provider),
       ...(systemPrompt ? { system: systemPrompt } : {}),
       messages: await convertToModelMessages(messages),
       maxRetries: 1,
-      ...(Object.keys(requestTools).length > 0 ? { tools: requestTools } : {}),
+      ...(!useWebSearch
+        ? { tools: frontendTools(tools ?? {}) }
+        : {}),
     });
 
     return result.toUIMessageStreamResponse({
@@ -151,7 +138,7 @@ export async function POST(req: Request) {
         const message =
           error instanceof Error ? error.message : "An error occurred.";
         if (message.includes("quota") || message.includes("RESOURCE_EXHAUSTED")) {
-          return `Gemini free-tier limit hit (${answerModelId}). Wait ~1 minute for RPM to reset, keep using Aria Nano, or click “Set up billing” at https://ai.dev/rate-limit for higher Search limits.`;
+          return `Gemini free-tier limit hit (${answerModelId}). Wait ~1 minute, keep using Aria Nano, or set up billing at https://ai.dev/rate-limit`;
         }
         if (
           message.includes("no longer available") ||
@@ -159,14 +146,6 @@ export async function POST(req: Request) {
           message.includes("is not found")
         ) {
           return `Model ${answerModelId} is unavailable. Switch to Aria Nano and try again.`;
-        }
-        if (
-          useWebSearch &&
-          (message.includes("google_search") ||
-            message.includes("Google Search") ||
-            message.includes("Search Grounding"))
-        ) {
-          return `Web search failed: ${message}`;
         }
         return message;
       },
