@@ -22,15 +22,15 @@ export const ARIA_MODELS: AriaModel[] = [
     name: "Aria Mini",
     description: "Balanced speed and reasoning",
     provider: "google",
-    // gemini-2.5-flash is unavailable to new API keys — use current Flash
-    modelId: "gemini-flash-latest",
+    // Separate quota pool from flash-latest / pro-latest
+    modelId: "gemini-3-flash-preview",
   },
   {
     id: "aria-max",
     name: "Aria Max",
     description: "Most capable, deepest reasoning",
     provider: "google",
-    modelId: "gemini-pro-latest",
+    modelId: "gemini-3.1-pro-preview",
   },
 ];
 

@@ -93,35 +93,20 @@ export async function POST(req: Request) {
     // Deep research always needs live sources.
     const useWebSearch = Boolean(webSearch) || useDeepResearch;
 
+    // Pre-research only for Deep Research (extra API call). Normal Search uses
+    // Google Search grounding on the main stream to avoid burning 2x quota.
     let researchBlock: string | undefined;
-    if (useWebSearch) {
+    if (useDeepResearch) {
       const query = getLastUserQuery(messages);
       if (query) {
-        try {
-          const packet = await gatherWebResearch({
-            provider: ariaModel.provider,
-            modelId: ariaModel.modelId,
-            query,
-            conversationHint: getSearchContextHint(messages),
-          });
-          if (packet.findings || packet.sources.length > 0) {
-            researchBlock = formatResearchForSystem(packet);
-          }
-        } catch (error) {
-          const message =
-            error instanceof Error ? error.message : "Web search failed.";
-          if (message.includes("quota") || message.includes("RESOURCE_EXHAUSTED")) {
-            return Response.json(
-              {
-                error: `Web search quota exceeded for ${ariaModel.modelId}. Try again later or switch models.`,
-              },
-              { status: 429 },
-            );
-          }
-          return Response.json(
-            { error: `Web search failed: ${message}` },
-            { status: 502 },
-          );
+        const packet = await gatherWebResearch({
+          provider: ariaModel.provider,
+          modelId: ariaModel.modelId,
+          query,
+          conversationHint: getSearchContextHint(messages),
+        });
+        if (packet && (packet.findings || packet.sources.length > 0)) {
+          researchBlock = formatResearchForSystem(packet);
         }
       }
     }
@@ -131,7 +116,9 @@ export async function POST(req: Request) {
       useWebSearch ? WEB_SEARCH_SYSTEM : undefined,
       researchBlock,
       useDeepResearch && useWebSearch
-        ? "Deep Research is active with web search. Every material claim must be grounded in the verified web research above — never fall back to unsourced general knowledge for people, companies, or current facts."
+        ? researchBlock
+          ? "Deep Research is active with web search. Every material claim must be grounded in the verified web research above — never fall back to unsourced general knowledge for people, companies, or current facts."
+          : "Deep Research is active. The dedicated research pass was unavailable (quota/model). You MUST use Google Search / web search tools before answering — do not answer people or company facts from memory."
         : undefined,
       system?.trim(),
     ]
@@ -161,7 +148,7 @@ export async function POST(req: Request) {
         const message =
           error instanceof Error ? error.message : "An error occurred.";
         if (message.includes("quota") || message.includes("RESOURCE_EXHAUSTED")) {
-          return `Gemini quota exceeded for ${ariaModel.modelId}. Try again later, enable billing, or switch to another model.`;
+          return `Gemini quota exceeded for ${ariaModel.modelId}. Switch to Aria Nano, wait a minute, or check billing at https://ai.dev/rate-limit`;
         }
         if (
           message.includes("no longer available") ||
