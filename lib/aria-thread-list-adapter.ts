@@ -105,9 +105,14 @@ export function createAriaThreadListAdapter(): RemoteThreadListAdapter {
     },
 
     async fetch(threadId) {
-      const thread = (await loadThreads()).find((t) => t.remoteId === threadId);
+      const threads = await loadThreads();
+      let thread = threads.find((t) => t.remoteId === threadId);
+      // URL chat ids can outlive localStorage (cleared storage, other device,
+      // failed first write). Never throw — create a stub so the page loads.
       if (!thread) {
-        throw new Error(`Thread "${threadId}" not found.`);
+        thread = { remoteId: threadId, status: "regular" };
+        threads.unshift(thread);
+        await saveThreads(threads);
       }
       return {
         remoteId: thread.remoteId,

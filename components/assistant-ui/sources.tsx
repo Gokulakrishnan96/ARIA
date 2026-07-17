@@ -20,6 +20,8 @@ type SourceItem = {
   url?: string;
 };
 
+const EMPTY_SOURCES: SourceItem[] = [];
+
 function hostname(url: string) {
   try {
     return new URL(url).hostname.replace(/^www\./, "");
@@ -106,8 +108,13 @@ export const SourcesGroup: FC<{ sources: SourceItem[] }> = ({ sources }) => {
 };
 
 export const MessageSources: FC = () => {
-  const sources = useAuiState((s) => {
-    const parts = s.message.parts ?? [];
+  // Subscribe to the stable parts reference — never return a fresh array from
+  // useAuiState (that can retrigger renders every time).
+  const parts = useAuiState((s) => s.message?.parts);
+
+  const sources = useMemo(() => {
+    if (!parts?.length) return EMPTY_SOURCES;
+
     const items: SourceItem[] = [];
     const seen = new Set<string>();
 
@@ -127,13 +134,13 @@ export const MessageSources: FC = () => {
             };
 
       const key = item.url || item.id;
-      if (seen.has(key)) continue;
+      if (!key || seen.has(key)) continue;
       seen.add(key);
       items.push(item);
     }
 
-    return items;
-  });
+    return items.length === 0 ? EMPTY_SOURCES : items;
+  }, [parts]);
 
   return <SourcesGroup sources={sources} />;
 };

@@ -53,7 +53,8 @@ function useChatThreadRuntime(options: {
 
 function readChatIdFromUrl() {
   if (typeof window === "undefined") return undefined;
-  return new URLSearchParams(window.location.search).get("chat") ?? undefined;
+  const chatId = new URLSearchParams(window.location.search).get("chat");
+  return chatId && chatId.trim() ? chatId.trim() : undefined;
 }
 
 export const Assistant = () => {

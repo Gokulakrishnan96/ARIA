@@ -43,20 +43,24 @@ export function getSearchContextHint(messages: UIMessage[]): string {
 }
 
 function normalizeSources(
-  sources: Awaited<ReturnType<typeof generateText>>["sources"],
+  sources: Awaited<ReturnType<typeof generateText>>["sources"] | unknown,
 ): { title: string; url: string }[] {
   const out: { title: string; url: string }[] = [];
   const seen = new Set<string>();
+  const list = Array.isArray(sources) ? sources : [];
 
-  for (const source of sources ?? []) {
+  for (const source of list) {
     if (!source || typeof source !== "object") continue;
-    if (!("url" in source) || typeof source.url !== "string") continue;
-    const url = source.url;
+    if (!("url" in source) || typeof (source as { url: unknown }).url !== "string") {
+      continue;
+    }
+    const url = (source as { url: string }).url;
     if (!url || seen.has(url)) continue;
     seen.add(url);
+    const titleCandidate = (source as { title?: unknown }).title;
     const title =
-      "title" in source && typeof source.title === "string" && source.title.trim()
-        ? source.title.trim()
+      typeof titleCandidate === "string" && titleCandidate.trim()
+        ? titleCandidate.trim()
         : url;
     out.push({ title, url });
   }

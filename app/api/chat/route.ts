@@ -64,6 +64,13 @@ export async function POST(req: Request) {
       webSearch?: boolean;
     } = await req.json();
 
+    if (!Array.isArray(messages)) {
+      return Response.json(
+        { error: "Request body must include a messages array." },
+        { status: 400 },
+      );
+    }
+
     const modelKey =
       model && isValidModelId(model) ? model : DEFAULT_MODEL_ID;
     const ariaModel = getModel(modelKey);
