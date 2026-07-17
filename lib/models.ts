@@ -9,26 +9,31 @@ export type AriaModel = {
   modelId: string;
 };
 
+/**
+ * Free-tier friendly Gemini models (see https://ai.dev/rate-limit).
+ * Gemini 3.1 Flash Lite has the highest free RPD (500) — default everything there.
+ */
+export const FREE_TIER_SEARCH_MODEL = "gemini-3.1-flash-lite-preview";
+
 export const ARIA_MODELS: AriaModel[] = [
   {
     id: "aria-nano",
     name: "Aria Nano",
-    description: "Fastest, great for everyday questions",
+    description: "Gemini 3.1 Flash Lite — best free-tier search",
     provider: "google",
-    modelId: "gemini-3.1-flash-lite-preview",
+    modelId: FREE_TIER_SEARCH_MODEL,
   },
   {
     id: "aria-mini",
     name: "Aria Mini",
-    description: "Balanced speed and reasoning",
+    description: "Gemini 3 Flash — balanced (free tier)",
     provider: "google",
-    // Separate quota pool from flash-latest / pro-latest
     modelId: "gemini-3-flash-preview",
   },
   {
     id: "aria-max",
     name: "Aria Max",
-    description: "Most capable, deepest reasoning",
+    description: "Gemini 3.1 Pro — deepest reasoning (free tier)",
     provider: "google",
     modelId: "gemini-3.1-pro-preview",
   },

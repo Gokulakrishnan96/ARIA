@@ -9,7 +9,12 @@ import {
   type JSONSchema7,
 } from "ai";
 
-import { DEFAULT_MODEL_ID, getModel, isValidModelId } from "@/lib/models";
+import {
+  DEFAULT_MODEL_ID,
+  FREE_TIER_SEARCH_MODEL,
+  getModel,
+  isValidModelId,
+} from "@/lib/models";
 import { ARIA_SYSTEM_PROMPT } from "@/lib/aria-system-prompt";
 import { WEB_SEARCH_SYSTEM } from "@/lib/web-search-prompt";
 import {
@@ -19,14 +24,11 @@ import {
   getSearchContextHint,
 } from "@/lib/web-search";
 
-function getLanguageModel(modelKey: string) {
-  const ariaModel = getModel(modelKey);
-
-  if (ariaModel.provider === "google") {
-    return google(ariaModel.modelId);
+function getLanguageModel(modelId: string, provider: "google" | "openai") {
+  if (provider === "google") {
+    return google(modelId);
   }
-
-  return openai(ariaModel.modelId);
+  return openai(modelId);
 }
 
 function buildWebSearchTools(provider: "google" | "openai"): ToolSet {
@@ -35,7 +37,6 @@ function buildWebSearchTools(provider: "google" | "openai"): ToolSet {
       google_search: google.tools.googleSearch({
         searchTypes: { webSearch: {} },
       }),
-      url_context: google.tools.urlContext({}),
     };
   }
 
@@ -90,18 +91,21 @@ export async function POST(req: Request) {
     }
 
     const useDeepResearch = Boolean(deepResearch);
-    // Deep research always needs live sources.
     const useWebSearch = Boolean(webSearch) || useDeepResearch;
 
-    // Pre-research only for Deep Research (extra API call). Normal Search uses
-    // Google Search grounding on the main stream to avoid burning 2x quota.
+    // Free tier: keep Search on Gemini 3.1 Flash Lite (500 RPD).
+    const answerModelId =
+      useWebSearch && ariaModel.provider === "google"
+        ? FREE_TIER_SEARCH_MODEL
+        : ariaModel.modelId;
+
     let researchBlock: string | undefined;
-    if (useDeepResearch) {
+    if (useWebSearch) {
       const query = getLastUserQuery(messages);
       if (query) {
         const packet = await gatherWebResearch({
           provider: ariaModel.provider,
-          modelId: ariaModel.modelId,
+          modelId: FREE_TIER_SEARCH_MODEL,
           query,
           conversationHint: getSearchContextHint(messages),
         });
@@ -115,31 +119,30 @@ export async function POST(req: Request) {
       useDeepResearch ? ARIA_SYSTEM_PROMPT : undefined,
       useWebSearch ? WEB_SEARCH_SYSTEM : undefined,
       researchBlock,
-      useDeepResearch && useWebSearch
+      useWebSearch
         ? researchBlock
-          ? "Deep Research is active with web search. Every material claim must be grounded in the verified web research above — never fall back to unsourced general knowledge for people, companies, or current facts."
-          : "Deep Research is active. The dedicated research pass was unavailable (quota/model). You MUST use Google Search / web search tools before answering — do not answer people or company facts from memory."
+          ? "Web Search already ran. Answer ONLY from the verified web research above. Do not call tools. If research conflicts with memory, research wins."
+          : "Web Search is on. You MUST use the google_search tool before answering. Never invent founders or company leadership from memory."
         : undefined,
       system?.trim(),
     ]
       .filter(Boolean)
       .join("\n\n");
 
-    // When web search is on, only attach provider search tools.
-    // Mixing client function tools with Google Search is unsupported on Gemini 2.x
-    // and can prevent grounding from running.
-    const requestTools = {
-      ...(useWebSearch
+    // If research already grounded the answer, skip a second google_search call
+    // (free-tier Search grounding quota is tighter than model RPD).
+    const requestTools = researchBlock
+      ? {}
+      : useWebSearch
         ? buildWebSearchTools(ariaModel.provider)
-        : frontendTools(tools ?? {})),
-    };
+        : frontendTools(tools ?? {});
 
     const result = streamText({
-      model: getLanguageModel(modelKey),
+      model: getLanguageModel(answerModelId, ariaModel.provider),
       ...(systemPrompt ? { system: systemPrompt } : {}),
       messages: await convertToModelMessages(messages),
       maxRetries: 1,
-      tools: requestTools,
+      ...(Object.keys(requestTools).length > 0 ? { tools: requestTools } : {}),
     });
 
     return result.toUIMessageStreamResponse({
@@ -148,14 +151,14 @@ export async function POST(req: Request) {
         const message =
           error instanceof Error ? error.message : "An error occurred.";
         if (message.includes("quota") || message.includes("RESOURCE_EXHAUSTED")) {
-          return `Gemini quota exceeded for ${ariaModel.modelId}. Switch to Aria Nano, wait a minute, or check billing at https://ai.dev/rate-limit`;
+          return `Gemini free-tier limit hit (${answerModelId}). Wait ~1 minute for RPM to reset, keep using Aria Nano, or click “Set up billing” at https://ai.dev/rate-limit for higher Search limits.`;
         }
         if (
           message.includes("no longer available") ||
           message.includes("NOT_FOUND") ||
           message.includes("is not found")
         ) {
-          return `Model ${ariaModel.modelId} is unavailable. Switch to another Aria model and try again.`;
+          return `Model ${answerModelId} is unavailable. Switch to Aria Nano and try again.`;
         }
         if (
           useWebSearch &&

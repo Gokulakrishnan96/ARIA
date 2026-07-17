@@ -46,8 +46,8 @@ export const useAriaStore = create<AriaStore>()(
         set((s) => ({ profile: { ...s.profile, ...updates } })),
     }),
     {
-      // Bump key so Search defaults ON after the web-search reliability fix.
-      name: "aria-ui-v2",
+      // Bump so clients pick Flash Lite + Search defaults after free-tier fix.
+      name: "aria-ui-v3",
       partialize: (s) => ({
         modelId: s.modelId,
         deepResearch: s.deepResearch,

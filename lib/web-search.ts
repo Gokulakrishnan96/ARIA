@@ -2,17 +2,15 @@ import { google } from "@ai-sdk/google";
 import { openai } from "@ai-sdk/openai";
 import { generateText, type UIMessage } from "ai";
 
+import { FREE_TIER_SEARCH_MODEL } from "@/lib/models";
+
 export type WebResearchPacket = {
   findings: string;
   sources: { title: string; url: string }[];
 };
 
-/** Prefer cheap Flash-Lite models for the research pass to spare chat-model quota. */
-const GOOGLE_RESEARCH_MODELS = [
-  "gemini-3.1-flash-lite-preview",
-  "gemini-flash-lite-latest",
-  "gemini-flash-latest",
-] as const;
+/** Only Flash Lite for research — highest free-tier daily quota (500 RPD). */
+const GOOGLE_RESEARCH_MODELS = [FREE_TIER_SEARCH_MODEL] as const;
 
 function extractTextFromParts(parts: UIMessage["parts"] | undefined): string {
   if (!parts?.length) return "";
@@ -75,27 +73,31 @@ function normalizeSources(
   return out;
 }
 
-function isQuotaError(error: unknown): boolean {
+function isRetryableModelError(error: unknown): boolean {
   const message = error instanceof Error ? error.message : String(error);
   return (
     message.includes("quota") ||
     message.includes("RESOURCE_EXHAUSTED") ||
     message.includes("rate limit") ||
-    message.includes("429")
+    message.includes("429") ||
+    message.includes("no longer available") ||
+    message.includes("NOT_FOUND") ||
+    message.includes("is not found")
   );
 }
 
 function buildResearchPrompt(query: string, conversationHint: string): string {
   return [
-    "Use live web search. Return ONLY facts supported by search results.",
-    "Focus on primary sources (official sites, team/about pages, LinkedIn, press).",
-    "If the question is about founders/leadership, name each person with their role.",
-    "Ignore conflicting prior knowledge — search results win.",
+    "Use Google Search. Return ONLY facts from search results.",
+    "For founder/leadership questions: list each person and their exact role.",
+    "Prefer official company team/about pages and LinkedIn.",
+    "If prior knowledge conflicts with search, search wins.",
+    "End with markdown source links.",
     "",
     conversationHint
       ? `Recent conversation context:\n${conversationHint}\n`
       : "",
-    `Question to research:\n${query}`,
+    `Question:\n${query}`,
   ]
     .filter(Boolean)
     .join("\n");
@@ -108,7 +110,7 @@ async function researchWithGoogle(
   const result = await generateText({
     model: google(modelId),
     system:
-      "You are a factual web researcher. You must use Google Search. Never invent people, titles, or company facts.",
+      "You are a factual web researcher with Google Search. Never invent people, titles, or company facts. Search first, then answer from results only.",
     tools: {
       google_search: google.tools.googleSearch({
         searchTypes: { webSearch: {} },
@@ -125,8 +127,8 @@ async function researchWithGoogle(
 }
 
 /**
- * Run a dedicated grounded search pass before the main answer.
- * Tries cheap models first. Returns null if every attempt fails (caller must soft-fall back).
+ * Grounded search pass on Gemini 3.1 Flash Lite (free-tier friendly).
+ * Returns null if unavailable — caller continues with live google_search tools.
  */
 export async function gatherWebResearch(options: {
   provider: "google" | "openai";
@@ -138,29 +140,16 @@ export async function gatherWebResearch(options: {
   const researchPrompt = buildResearchPrompt(query, conversationHint);
 
   if (provider === "google") {
-    const candidates = [
-      ...GOOGLE_RESEARCH_MODELS,
-      modelId,
-    ].filter((id, index, all) => all.indexOf(id) === index);
+    const candidates = [...GOOGLE_RESEARCH_MODELS, modelId].filter(
+      (id, index, all) => all.indexOf(id) === index,
+    );
 
     for (const candidate of candidates) {
       try {
         const packet = await researchWithGoogle(candidate, researchPrompt);
         if (packet.findings || packet.sources.length > 0) return packet;
       } catch (error) {
-        // Try next model on quota / availability errors; bail on unexpected ones
-        // only after the loop.
-        if (!isQuotaError(error)) {
-          const message =
-            error instanceof Error ? error.message : String(error);
-          if (
-            message.includes("no longer available") ||
-            message.includes("NOT_FOUND") ||
-            message.includes("is not found")
-          ) {
-            continue;
-          }
-        }
+        if (isRetryableModelError(error)) continue;
         continue;
       }
     }
@@ -171,7 +160,7 @@ export async function gatherWebResearch(options: {
     const result = await generateText({
       model: openai(modelId),
       system:
-        "You are a factual web researcher. You must use web search. Never invent people, titles, or company facts.",
+        "You are a factual web researcher. Use web search. Never invent people, titles, or company facts.",
       tools: {
         web_search: openai.tools.webSearch({
           searchContextSize: "high",
