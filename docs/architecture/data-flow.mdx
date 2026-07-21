@@ -1,0 +1,40 @@
+---
+title: Data flow
+description: End-to-end path of a user query.
+---
+
+# Data flow
+
+## Happy path
+
+1. User submits a message from the composer.
+2. `AssistantChatTransport` reads Zustand flags (`model`, `deepResearch`, `webSearch`) and POSTs to `/api/chat`.
+3. Server validates `messages[]` and resolves the Aria model.
+4. If **web search** or **deep research** is on:
+   - Extract last user query (+ conversation hint).
+   - Run independent web research (normalize → search → fetch → score).
+   - Format a research packet into the system prompt.
+   - If research is empty → **503** (no memory fallback).
+5. Compose system prompt layers:
+   - Deep Research contract (optional)
+   - Web-search answering rules (if search)
+   - Research packet (if search)
+   - Optional client `system` string
+6. `streamText` against the answer model.
+7. Stream UI message parts back; Sources expand when search was used.
+8. If Deep Research, client `parse-research-brief` renders institutional sections.
+
+## Decision table
+
+| deepResearch | webSearch | Behaviour |
+| --- | --- | --- |
+| false | false | Plain chat; frontend tools allowed |
+| false | true | Search → grounded answer |
+| true | true* | Search + Deep Research brief contract |
+| true | false | Treated as search on — Deep Research forces web search in the store |
+
+\* Enabling Deep Research also sets `webSearch: true` in Zustand.
+
+## Free-tier answer model override
+
+When the provider is Google and search is active, the answer model is forced to `gemini-3.1-flash-lite-preview` (`FREE_TIER_SEARCH_MODEL`) regardless of Mini/Max selection. This is an operational constraint, not a product promise — document it honestly for internal buyers.

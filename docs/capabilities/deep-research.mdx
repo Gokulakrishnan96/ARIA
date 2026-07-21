@@ -1,0 +1,38 @@
+---
+title: Deep Research
+description: Institutional brief contract and client rendering.
+---
+
+# Deep Research
+
+Deep Research is a **methodology surface**, not a separate multi-agent product. It is implemented as:
+
+1. A strict system prompt (`lib/aria-system-prompt.ts`)
+2. Forced web research (search must be live)
+3. A client brief parser (`lib/parse-research-brief.ts`) that renders fixed sections
+
+## Required output sections
+
+| Section | Purpose |
+| --- | --- |
+| **Title** | Precise scope |
+| **Executive Summary** | Core conclusion first (3–5 sentences) |
+| **Key Findings** | Standalone, decision-ready statements |
+| **Detailed Analysis** | Context, drivers, evidence, implications |
+| **Areas of Uncertainty** | Mandatory — contested / unresolved |
+| **Sources** | Numbered markdown links; body citations must match |
+
+## Research process (prompt-enforced)
+
+1. Decompose into 3–6 sub-questions
+2. Investigate each independently
+3. Corroborate material claims across ≥2 sources
+4. Synthesize only after evidentiary basis exists
+
+## Why this matters for buyers
+
+Methodology-literate buyers (consultancies, credit, research houses) buy **discipline**, not chat fluency. The uncertainty section and source discipline are load-bearing — do not soften them for conversational polish.
+
+## Known gap
+
+There is not yet a separate **classification-quality eval harness** or methodology scorecard. That sits on the owned priority list (see Build priorities).

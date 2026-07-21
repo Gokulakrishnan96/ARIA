@@ -1,0 +1,33 @@
+---
+title: Build priorities
+description: Owned priority list — pressure-tested order of work.
+---
+
+# Build priorities
+
+These are the build decisions Aria / platform engineering owns. Order below is the recommended sequence for a methodology-literate buyer story — not a vanity roadmap.
+
+| Priority | Workstream | Why it comes now | Risk if skipped |
+| --- | --- | --- | --- |
+| P0 | **Event pipeline** | Nothing downstream is credible without a clean, consented event spine | Every surface becomes a demo |
+| P0 | **Methodology surface** | Deep Research contract + uncertainty + sources is what buyers audit | Looks like ChatGPT with a logo |
+| P0 | **Dual-write schema boundary** | Operational store ≠ intelligence store | Compliance failure + irreversible coupling |
+| P1 | **Metering + credit layer** | Audit log = billing ledger; must be one system | Retrofit billing forever |
+| P1 | **Classification-quality evals** | Prove label / segment quality before selling indices | Methodology challenge in RFP |
+| P1 | **Licensed feeds** | Replace brittle scrape-only research for production claims | Source credibility attacks |
+| P2 | **Persistent connected data** | Enables BYOD + cross-device share + real usage | Stuck on localStorage forever |
+| P2 | **Tenant-isolated execution** | Enables “run on our infra” without data egress | Cannot sell deepest surface |
+
+## Disagreements worth having (pre-build)
+
+1. **Credits before APIs, or APIs before credits?**  
+   Recommendation: design the **audit event schema first**, ship credits on chat immediately after, then expose the same meter on APIs. Do not ship a second metering path for APIs later.
+
+2. **Independent web search vs licensed feeds**  
+   Scrapers are fine for Aria v0. For BNII commercial claims, licensed feeds + partner signal must dominate. Keep scrapers as a fallback enrichment, not the source of truth.
+
+3. **Deep Research as prompt vs agent graph**  
+   Keep the prompt contract until evals prove failure modes. Multi-agent graphs without evals create un-auditable theatre.
+
+4. **k-floor enforcement location**  
+   Enforce at the intelligence release boundary (dataset / index publish), not only at the chat UI. Chat is one consumer; APIs must hit the same gate.

@@ -1,0 +1,30 @@
+---
+title: Chat
+description: Streaming chat runtime and composer controls.
+---
+
+# Chat
+
+## Runtime
+
+Aria uses `assistant-ui` with the AI SDK transport:
+
+- `useChat` + `useAISDKRuntime` for message streaming
+- `useRemoteThreadListRuntime` for Recents + `?chat=` URL sync
+- `AssistantChatTransport` targeting `/api/chat`
+
+## Composer controls
+
+| Control | Store field | Effect |
+| --- | --- | --- |
+| Model selector | `modelId` | `aria-nano` · `aria-mini` · `aria-max` |
+| Search | `webSearch` | Independent web research before answer |
+| Deep research | `deepResearch` | Institutional brief contract (+ forces search) |
+
+## Attachments
+
+Composer supports file and screenshot attachments via assistant-ui attachment primitives. Attachment bytes are part of the UI message payload sent to the API.
+
+## Error surfacing
+
+Quota / model-unavailable errors from Gemini are rewritten into readable messages in the chat stream `onError` handler (free-tier guidance, switch-to-Nano hints).

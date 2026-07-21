@@ -1,0 +1,44 @@
+---
+title: Quickstart
+description: Run Aria locally for development and review.
+---
+
+# Quickstart
+
+## Prerequisites
+
+- Node.js 20+
+- Google AI Studio API key (`GOOGLE_GENERATIVE_AI_API_KEY`)
+
+## Install
+
+```bash
+git clone https://github.com/Gokulakrishnan96/ARIA.git
+cd ARIA
+npm install
+```
+
+## Environment
+
+Create `.env.local` (gitignored):
+
+```bash
+GOOGLE_GENERATIVE_AI_API_KEY=your_gemini_api_key_here
+# OPENAI_API_KEY=...   # only if a model provider is set to openai
+```
+
+## Develop
+
+```bash
+npm run dev
+```
+
+- App: [http://localhost:3000](http://localhost:3000)
+- Docs: [http://localhost:3000/docs](http://localhost:3000/docs)
+
+## Production
+
+```bash
+npm run build
+npm start
+```

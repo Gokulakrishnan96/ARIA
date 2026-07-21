@@ -1,0 +1,53 @@
+---
+title: Architecture overview
+description: Stack, runtime, and design principles.
+---
+
+# Architecture overview
+
+## Stack
+
+| Layer | Choice |
+| --- | --- |
+| Framework | Next.js 16 (App Router, Turbopack) |
+| UI | React 19, Tailwind CSS 4, Base UI, shadcn |
+| Chat runtime | `@assistant-ui/react` + Vercel AI SDK |
+| Models | `@ai-sdk/google` (primary), `@ai-sdk/openai` (optional) |
+| Client state | Zustand (persisted preferences) |
+| Thread list | `localStorage` via remote thread-list adapter |
+| Export | jsPDF, docx, pptxgenjs, SheetJS |
+
+## Design principles
+
+1. **One write path for answers.** All model I/O goes through `POST /api/chat`. No parallel ad-hoc model calls from the client.
+2. **Search before memory when Search is on.** If live research fails, the API returns 503 — it does not silently fall back to parametric memory.
+3. **Deep Research is a contract, not a vibe.** Fixed section headings; client parses into an institutional brief UI.
+4. **Secrets stay server-side.** API keys never enter the browser bundle.
+5. **Auditability first.** Every future commercial surface (credits, APIs, BYOD) must reuse one metering/audit ledger — do not invent a second billing path.
+
+## Repository map
+
+```
+ARIA/
+├── app/
+│   ├── api/chat/route.ts     # Sole streaming + research API
+│   ├── assistant.tsx         # Runtime, transport, URL sync
+│   ├── docs/                 # This documentation surface
+│   ├── profile/              # Profile UI
+│   └── page.tsx
+├── components/
+│   ├── aria/                 # Product shell, toggles, brief, share
+│   ├── assistant-ui/         # Thread, markdown, tools, reasoning
+│   └── ui/                   # Shared primitives
+├── lib/
+│   ├── models.ts
+│   ├── aria-system-prompt.ts
+│   ├── web-search.ts
+│   ├── independent-web-search.ts
+│   ├── query-normalize.ts
+│   ├── parse-research-brief.ts
+│   ├── aria-store.ts
+│   ├── thread-storage.ts
+│   └── export-chat.ts
+└── docs/                     # Mintlify-compatible source MDX
+```

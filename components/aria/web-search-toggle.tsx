@@ -21,7 +21,7 @@ export function WebSearchToggle() {
       className={cn(
         "h-7 gap-1.5 rounded-full px-2 text-[12px] font-medium transition-colors",
         enabled
-          ? "bg-primary/15 text-primary hover:bg-primary/20 hover:text-primary"
+          ? "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
           : "text-muted-foreground hover:text-foreground",
       )}
     >

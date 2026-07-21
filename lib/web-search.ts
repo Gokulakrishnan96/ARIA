@@ -59,7 +59,10 @@ export async function gatherWebResearch(options: {
     const packet = await independentWebResearch(query, conversationHint);
     if (!packet) return null;
     if (!packet.findings && packet.sources.length === 0) return null;
-    return packet;
+    return {
+      findings: packet.findings,
+      sources: packet.sources,
+    };
   } catch {
     return null;
   }
@@ -78,6 +81,7 @@ export function formatResearchForSystem(packet: WebResearchPacket): string {
     "Answer using ONLY the findings below. If they conflict with your training data, the findings win.",
     "Do not invent additional founders, executives, or facts that are absent here.",
     "Quote names and roles exactly as they appear in the extracts.",
+    "If the user misspelled the company (e.g. bindary → binary), answer for the company evidenced below — not a different similarly named firm.",
     "",
     "### Findings",
     packet.findings || "(no findings)",

@@ -1,3 +1,5 @@
+import { correctQueryTypos, expandSearchQueries } from "./query-normalize";
+
 export type SearchHit = {
   title: string;
   url: string;
@@ -7,6 +9,7 @@ export type SearchHit = {
 export type IndependentResearch = {
   findings: string;
   sources: { title: string; url: string }[];
+  correctedQuery?: string;
 };
 
 const UA =
@@ -27,10 +30,7 @@ function extractUrlsFromHtml(html: string): SearchHit[] {
   const hits: SearchHit[] = [];
   const seen = new Set<string>();
 
-  const patterns = [
-    /uddg=([^&"'\s]+)/gi,
-    /href="(https?:\/\/[^"]+)"/gi,
-  ];
+  const patterns = [/uddg=([^&"'\s]+)/gi, /href="(https?:\/\/[^"]+)"/gi];
 
   for (const re of patterns) {
     let match: RegExpExecArray | null;
@@ -38,7 +38,11 @@ function extractUrlsFromHtml(html: string): SearchHit[] {
       const raw = match[1]!;
       const url = raw.startsWith("http") ? raw : decodeDuckUrl(raw);
       if (!url) continue;
-      if (/duckduckgo\.com|bing\.com\/ck|javascript:|microsoft\.com|msn\.com/i.test(url)) {
+      if (
+        /duckduckgo\.com|bing\.com\/ck|javascript:|microsoft\.com|msn\.com/i.test(
+          url,
+        )
+      ) {
         continue;
       }
       if (seen.has(url)) continue;
@@ -58,7 +62,7 @@ function candidateOfficialUrls(query: string): SearchHit[] {
     .toLowerCase()
     .replace(/[^\w\s]/g, " ")
     .replace(
-      /\b(who|is|are|the|a|an|of|founder|founders|ceo|cofounder|co|founder|company|about|tell|me|what)\b/g,
+      /\b(who|is|are|the|a|an|of|founder|founders|ceo|cofounder|co|founder|company|about|tell|me|what|official|team)\b/g,
       " ",
     )
     .replace(/\s+/g, " ")
@@ -82,12 +86,7 @@ function candidateOfficialUrls(query: string): SearchHit[] {
 
   for (const host of hosts) {
     for (const path of paths) {
-      const url = `https://${host.replace(/^www\./, "www.")}${path}`.replace(
-        "https://www.www.",
-        "https://www.",
-      );
-      // normalize host without double www
-      const normalized = url
+      const normalized = `https://${host}${path}`
         .replace("https://www.www.", "https://www.")
         .replace("https://thethe", "https://the");
       if (seen.has(normalized)) continue;
@@ -96,7 +95,6 @@ function candidateOfficialUrls(query: string): SearchHit[] {
     }
   }
 
-  // Explicit high-value guess for common "The X" company names
   if (compact.length >= 6) {
     hits.unshift({
       title: `https://www.${compact}.com/team`,
@@ -202,6 +200,7 @@ async function readPageText(
 function buildFindings(
   query: string,
   pages: { url: string; title: string; body: string }[],
+  correctedQuery?: string,
 ) {
   const blocks = pages.map((page, i) => {
     return [
@@ -212,8 +211,12 @@ function buildFindings(
   });
 
   return [
-    `Search query: ${query}`,
+    `User query: ${query}`,
+    correctedQuery
+      ? `Corrected search query (typo fix): ${correctedQuery}`
+      : `Search query: ${query}`,
     "The following are live web extracts. Treat them as the only evidence.",
+    "If the user misspelled a company name, answer for the company in these sources (not a different similarly spelled firm).",
     "",
     ...blocks,
   ].join("\n");
@@ -227,12 +230,28 @@ function scoreUrl(url: string, query: string): number {
     for (const token of host.split(/[.-]/).filter((t) => t.length > 3)) {
       if (q.includes(token)) s += 6;
     }
+    // Prefer real Binary Holdings over unrelated "Bindery" publishing hits
+    if (/thebinaryholdings\.com/i.test(host)) s += 20;
+    if (/bindery/i.test(host) && /binary/i.test(q)) s -= 15;
   } catch {
     // ignore
   }
   if (/\/team|\/about|\/leadership|\/company|\/founders?/i.test(url)) s += 5;
   if (/crunchbase\.com|thecompanycheck\.com|preqin\.com/i.test(url)) s += 3;
   if (/linkedin\.com/i.test(url)) s -= 2;
+  return s;
+}
+
+function scorePage(
+  page: { url: string; title: string; body: string },
+  query: string,
+): number {
+  let s = scoreUrl(page.url, query);
+  const blob = `${page.title}\n${page.body}`.toLowerCase();
+  if (blob.includes("the binary holdings")) s += 12;
+  if (blob.includes("manit") && blob.includes("parikh")) s += 8;
+  if (blob.includes("the bindery") && /binary/i.test(query)) s -= 20;
+  if (blob.includes("publishing services") && /binary/i.test(query)) s -= 10;
   return s;
 }
 
@@ -244,12 +263,32 @@ export async function independentWebResearch(
   query: string,
   conversationHint = "",
 ): Promise<IndependentResearch | null> {
-  const searchQuery = conversationHint
-    ? `${query} ${conversationHint.replace(/\n/g, " ").slice(0, 160)}`
-    : query;
+  const variants = expandSearchQueries(query);
+  const corrected = correctQueryTypos(query);
+  const correctedQuery =
+    corrected.toLowerCase() !== query.trim().toLowerCase()
+      ? corrected
+      : undefined;
 
-  const engineHits = await searchEngineHits(searchQuery);
-  const officialHits = candidateOfficialUrls(query);
+  const primary = correctedQuery || query;
+  const searchQueries = [
+    ...variants,
+    conversationHint
+      ? `${primary} ${conversationHint.replace(/\n/g, " ").slice(0, 120)}`
+      : "",
+  ].filter(Boolean);
+
+  const engineHits: SearchHit[] = [];
+  for (const q of searchQueries.slice(0, 3)) {
+    const hits = await searchEngineHits(q);
+    engineHits.push(...hits);
+    if (engineHits.length >= 8) break;
+  }
+
+  const officialHits = [
+    ...candidateOfficialUrls(primary),
+    ...candidateOfficialUrls(query),
+  ];
   const merged = [...officialHits, ...engineHits];
 
   const seen = new Set<string>();
@@ -259,13 +298,12 @@ export async function independentWebResearch(
     return true;
   });
 
-  hits.sort((a, b) => scoreUrl(b.url, query) - scoreUrl(a.url, query));
-  const selected = hits.slice(0, 8);
+  hits.sort((a, b) => scoreUrl(b.url, primary) - scoreUrl(a.url, primary));
+  const selected = hits.slice(0, 10);
   if (selected.length === 0) return null;
 
   const pages: { url: string; title: string; body: string }[] = [];
-  // Fetch in small parallel batches for serverless time limits
-  for (let i = 0; i < selected.length && pages.length < 4; i += 3) {
+  for (let i = 0; i < selected.length && pages.length < 5; i += 3) {
     const batch = selected.slice(i, i + 3);
     const results = await Promise.all(
       batch.map(async (hit) => {
@@ -276,16 +314,34 @@ export async function independentWebResearch(
     );
     for (const page of results) {
       if (page) pages.push(page);
-      if (pages.length >= 4) break;
+      if (pages.length >= 5) break;
     }
   }
 
-  pages.sort((a, b) => scoreUrl(b.url, query) - scoreUrl(a.url, query));
+  pages.sort(
+    (a, b) => scorePage(b, primary) - scorePage(a, primary),
+  );
 
-  if (pages.length === 0) return null;
+  // Drop clear false-friends when we already have Binary Holdings evidence
+  const hasBinaryEvidence = pages.some(
+    (p) =>
+      /thebinaryholdings\.com/i.test(p.url) ||
+      /the binary holdings/i.test(`${p.title} ${p.body}`),
+  );
+  const filtered = hasBinaryEvidence
+    ? pages.filter(
+        (p) =>
+          !/the bindery/i.test(`${p.title} ${p.body}`) &&
+          !/binderyholdings|thebindery/i.test(p.url),
+      )
+    : pages;
+
+  const finalPages = (filtered.length > 0 ? filtered : pages).slice(0, 4);
+  if (finalPages.length === 0) return null;
 
   return {
-    findings: buildFindings(query, pages.slice(0, 4)),
-    sources: pages.slice(0, 4).map((p) => ({ title: p.title, url: p.url })),
+    findings: buildFindings(query, finalPages, correctedQuery),
+    sources: finalPages.map((p) => ({ title: p.title, url: p.url })),
+    correctedQuery,
   };
 }

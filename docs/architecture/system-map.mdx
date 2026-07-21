@@ -1,0 +1,58 @@
+---
+title: System map
+description: Logical components and how they compose.
+---
+
+# System map
+
+## Logical components
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                         Browser                              │
+│  AppShell ─ Sidebar ─ TopBar ─ Thread ─ Composer toggles    │
+│       │                                                      │
+│       ├─ Zustand (model, deepResearch, webSearch, profile)  │
+│       └─ localStorage threads (Recents + ?chat= sync)       │
+└───────────────────────────┬─────────────────────────────────┘
+                            │ POST /api/chat
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│                      Next.js server                          │
+│  ┌──────────────┐   ┌────────────────────┐   ┌───────────┐ │
+│  │ Model router │──▶│ Independent web    │──▶│ streamText│ │
+│  │ Nano/Mini/Max│   │ research pipeline  │   │ → UI msg  │ │
+│  └──────────────┘   └────────────────────┘   └───────────┘ │
+│         │                     │                              │
+│         ▼                     ▼                              │
+│   Gemini / OpenAI      DDG / Bing + page fetch               │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## UI composition
+
+```
+page.tsx
+└── Assistant
+    └── AssistantRuntimeProvider
+        └── AppShell
+            ├── ChatSidebar (Recents, profile footer, settings)
+            ├── AriaTopBar (share / export / new chat)
+            └── Thread
+                ├── Messages → ResearchBrief | Markdown
+                └── Composer
+                    ├── WebSearchToggle
+                    ├── DeepResearchToggle
+                    └── ModelSelector
+```
+
+## What is deliberately not in the map (yet)
+
+- Auth / identity provider
+- Credits ledger / metering service
+- Dual-write event pipeline into warehouse
+- Licensed feed connectors
+- Tenant-isolated model execution environment
+- Persistent connected-customer data store
+
+These belong to the BNII platform roadmap and must not be bolted onto Aria as one-off client hacks.

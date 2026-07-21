@@ -1,0 +1,21 @@
+---
+title: Export & share
+description: Client-side export formats and share links.
+---
+
+# Export & share
+
+## Share
+
+Copies the current URL with `?chat=<threadId>`. Threads live in `localStorage`, so links open the matching thread **only on browsers that already hold that thread**.
+
+## Export formats
+
+All generated in-browser from in-memory messages (`lib/export-chat.ts`):
+
+- PDF · DOCX · PPTX · XLSX · CSV · JSON
+- Markdown export via assistant action bar
+
+## Roadmap implication
+
+Cross-device share and server-side PDF/DOCX for large briefs require **persistent message storage** — which should be designed together with the metering ledger, not as a separate one-off DB.

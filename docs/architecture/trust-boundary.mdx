@@ -1,0 +1,31 @@
+---
+title: Trust boundary
+description: What runs where, and what must never cross.
+---
+
+# Trust boundary
+
+## Server-only
+
+| Asset | Reason |
+| --- | --- |
+| `GOOGLE_GENERATIVE_AI_API_KEY` / `OPENAI_API_KEY` | Credential material |
+| Independent page fetches | Avoid CORS / hide scrapers from the client |
+| Model invocation | Billing, rate limits, prompt control |
+
+## Client-only (today)
+
+| Asset | Implication |
+| --- | --- |
+| Thread list & titles | Share links work only on the same browser |
+| UI preferences | No cross-device sync |
+| Profile / plan / usage display | Mock data — not billing truth |
+| Export generation | Large chats may strain the browser |
+
+## Future BNII invariants (non-negotiable)
+
+1. **Consent gates** apply at every surface — chat, API, BYOD, run-on-infra.
+2. **k-floor** aggregation thresholds are enforced before any market-level release.
+3. **Audit log ≡ metering ledger** — one system, not two.
+4. **Raw behavioural signal never egresses** on the deepest surface; only intelligence output leaves the boundary.
+5. Dual-write schema boundaries are explicit — app operational store ≠ analytics / intelligence store.

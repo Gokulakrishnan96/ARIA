@@ -1,0 +1,39 @@
+---
+title: Chat API
+description: POST /api/chat contract.
+---
+
+# Chat API
+
+## `POST /api/chat`
+
+### Request body
+
+```ts
+{
+  messages: UIMessage[];   // required
+  system?: string;
+  tools?: Record<string, {
+    description?: string;
+    parameters: JSONSchema7;
+  }>;
+  model?: "aria-nano" | "aria-mini" | "aria-max";
+  deepResearch?: boolean;
+  webSearch?: boolean;
+}
+```
+
+### Responses
+
+| Status | When |
+| --- | --- |
+| 200 stream | UI message stream (`toUIMessageStreamResponse`) |
+| 400 | Missing / invalid `messages` |
+| 500 | Missing API key or unexpected failure |
+| 503 | Search on but live research returned empty |
+
+### Behavioural notes
+
+- `webSearch || deepResearch` enables independent research.
+- With search on, frontend tools are **not** passed to `streamText`.
+- `sendSources: true` when search was used.

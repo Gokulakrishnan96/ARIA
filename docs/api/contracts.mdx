@@ -1,0 +1,32 @@
+---
+title: Contracts
+description: Stable interfaces and env vars.
+---
+
+# Contracts
+
+## Environment
+
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `GOOGLE_GENERATIVE_AI_API_KEY` | Yes (current models) | Gemini |
+| `OPENAI_API_KEY` | Only if provider is openai | OpenAI models |
+
+## Persistence keys
+
+| Key | Store | Contents |
+| --- | --- | --- |
+| `aria-ui-v3` | localStorage | Zustand UI prefs + profile |
+| `aria:threads` | localStorage | Recents metadata |
+
+## Brief section headings (stable)
+
+Deep Research parsers depend on these markdown labels remaining stable:
+
+`Title` · `Executive Summary` · `Key Findings` · `Detailed Analysis` · `Areas of Uncertainty` · `Sources`
+
+Legacy aliases still accepted: `Headline`, `Analysis`.
+
+## Future contract principle
+
+When credits land, the **audit event schema** becomes a public contract. Design it once; reuse for billing, compliance, and customer-facing usage statements.

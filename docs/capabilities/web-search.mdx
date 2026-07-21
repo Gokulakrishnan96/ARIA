@@ -1,0 +1,32 @@
+---
+title: Web search
+description: Independent research pipeline (not Gemini grounding).
+---
+
+# Web search
+
+## Important correction vs older README
+
+Aria does **not** currently attach Gemini `google_search` grounding as a tool. The chat route runs an **independent** research pipeline, then answers from the research packet only. This avoids free-tier grounding quota exhaustion and silent memory fallbacks.
+
+## Pipeline
+
+```
+query
+  → typo correction / expansion (query-normalize)
+  → DuckDuckGo html/lite + Bing HTML search
+  → official-URL heuristics + score/rank
+  → fetch top pages (batched) → strip HTML → text
+  → findings + sources packet
+  → injected into system prompt
+```
+
+## Failure policy
+
+If Search (or Deep Research) is on and the packet is empty → **HTTP 503** with a retry message. Memory answers are forbidden in that mode.
+
+## Operational caveats
+
+- HTML search scraping is brittle (IP blocks, markup changes).
+- Domain false-friend heuristics reduce misattribution but are not perfect.
+- Licensed feeds (priority list) should eventually replace or augment scrapers for production credibility.

@@ -1,0 +1,22 @@
+---
+title: Models
+description: Aria Nano / Mini / Max registry.
+---
+
+# Models
+
+Configured in `lib/models.ts`.
+
+| UI name | Id | Provider model (current) | Role |
+| --- | --- | --- | --- |
+| Aria Nano | `aria-nano` | `gemini-3.1-flash-lite-preview` | Fast / free-tier friendly |
+| Aria Mini | `aria-mini` | `gemini-3-flash-preview` | Balanced |
+| Aria Max | `aria-max` | `gemini-3.1-pro-preview` | Deepest reasoning |
+
+## Free-tier search override
+
+When search is active on Google, answers use `FREE_TIER_SEARCH_MODEL` (Flash Lite preview), not the selected Mini/Max id.
+
+## Provider swap
+
+Each model entry has `provider: "google" | "openai"` and a `modelId`. Restoring OpenAI Mini/Max is a registry change plus `OPENAI_API_KEY` — not a rewrite of the chat route.
