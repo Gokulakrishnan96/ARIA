@@ -1,0 +1,41 @@
+---
+title: Tech stack
+description: Target platform technology stack for Aria and BNII.
+---
+
+# Tech stack
+
+Target platform stack for Aria and BNII. See [Architecture overview](/architecture/overview) for what is live in the Aria app today versus still on the build path.
+
+| Layer | Technology | Purpose |
+| --- | --- | --- |
+| Frontend | Next.js | Chat UI & Dashboard |
+| UI Framework | Tailwind CSS + Shadcn UI | Modern User Experience |
+| Authentication | Firebase Authentication | User Login & Identity Management |
+| Backend | Next.js API Routes | API Gateway |
+| AI Model | Gemini 2.5 Flash | Chat & Intelligence Generation |
+| Web Search | Tavily API | Real-Time Search |
+| Deep Research | Tavily + Firecrawl | Multi-step Research |
+| Payment Gateway | Stripe | Credit Purchases, Subscriptions, Billing |
+| Database | Google Cloud SQL (PostgreSQL) | Users, Chats, Audit Logs, Metadata |
+| Cache | Redis (Memorystore / Upstash) | Response & Session Cache |
+| File Storage | Google Cloud Storage | Documents & Uploads |
+| Vector Search | pgvector / Vertex AI Vector Search | Semantic Search & RAG |
+| Event Pipeline | Google Pub/Sub | Event Streaming |
+| Data Warehouse | BigQuery | Intelligence & Analytics |
+| Monitoring | Cloud Monitoring + Sentry | Logs & Error Tracking |
+| Deployment | Cloud Run | Backend Services |
+| CI/CD | GitHub Actions + Cloud Build | Automated Deployment |
+
+## Mapping to the platform spine
+
+| Spine / surface | Primary stack |
+| --- | --- |
+| Event Pipeline | Google Pub/Sub → Cloud SQL / BigQuery (dual-write) |
+| Consent / Audit / Credits | Cloud SQL audit logs · Stripe metering |
+| Classification / RAG | pgvector / Vertex AI Vector Search |
+| Governed Data Lake / Analytics | BigQuery |
+| AI Query Engine (Aria) | Next.js · Gemini · Tavily · Firecrawl |
+| Intelligence APIs | Next.js API Routes on Cloud Run |
+| Files / BYOD uploads | Google Cloud Storage |
+| Ops | Cloud Monitoring · Sentry · GitHub Actions · Cloud Build |

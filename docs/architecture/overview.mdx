@@ -21,7 +21,7 @@ flowchart LR
   E --> I[Execution Environment]
 ```
 
-## Aria application stack
+## Aria application stack (today)
 
 | Layer | Choice |
 | --- | --- |
@@ -32,6 +32,30 @@ flowchart LR
 | Client state | Zustand (persisted preferences) |
 | Thread list | `localStorage` via remote thread-list adapter |
 | Export | jsPDF, docx, pptxgenjs, SheetJS |
+
+## Target tech stack
+
+Full platform stack (Aria + BNII). Details: [Tech stack](/architecture/tech-stack).
+
+| Layer | Technology | Purpose |
+| --- | --- | --- |
+| Frontend | Next.js | Chat UI & Dashboard |
+| UI Framework | Tailwind CSS + Shadcn UI | Modern User Experience |
+| Authentication | Firebase Authentication | User Login & Identity Management |
+| Backend | Next.js API Routes | API Gateway |
+| AI Model | Gemini 2.5 Flash | Chat & Intelligence Generation |
+| Web Search | Tavily API | Real-Time Search |
+| Deep Research | Tavily + Firecrawl | Multi-step Research |
+| Payment Gateway | Stripe | Credit Purchases, Subscriptions, Billing |
+| Database | Google Cloud SQL (PostgreSQL) | Users, Chats, Audit Logs, Metadata |
+| Cache | Redis (Memorystore / Upstash) | Response & Session Cache |
+| File Storage | Google Cloud Storage | Documents & Uploads |
+| Vector Search | pgvector / Vertex AI Vector Search | Semantic Search & RAG |
+| Event Pipeline | Google Pub/Sub | Event Streaming |
+| Data Warehouse | BigQuery | Intelligence & Analytics |
+| Monitoring | Cloud Monitoring + Sentry | Logs & Error Tracking |
+| Deployment | Cloud Run | Backend Services |
+| CI/CD | GitHub Actions + Cloud Build | Automated Deployment |
 
 ## Design principles
 

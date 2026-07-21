@@ -35,6 +35,7 @@ const NAV: NavGroup[] = [
     title: "Architecture",
     items: [
       { id: "architecture", label: "Overview" },
+      { id: "tech-stack", label: "Tech stack" },
       { id: "system-map", label: "System map" },
       { id: "data-flow", label: "Data flow" },
       { id: "trust", label: "Trust boundary" },
@@ -527,7 +528,7 @@ npm run dev
                   ],
                 ]}
               />
-              <H3>Aria application stack</H3>
+              <H3>Aria application stack (today)</H3>
               <Table
                 headers={["Layer", "Choice"]}
                 rows={[
@@ -560,6 +561,102 @@ npm run dev
                   ledger.
                 </li>
               </ol>
+            </Section>
+
+            <Section id="tech-stack" title="Tech stack">
+              <P>
+                Target platform stack for Aria and BNII. Layers already live in
+                the Aria app are noted under{" "}
+                <a
+                  href="#architecture"
+                  className="font-medium text-[#18E299] hover:underline"
+                >
+                  Architecture overview
+                </a>
+                ; remaining rows are the build target.
+              </P>
+              <Table
+                headers={["Layer", "Technology", "Purpose"]}
+                rows={[
+                  ["Frontend", "Next.js", "Chat UI & Dashboard"],
+                  [
+                    "UI Framework",
+                    "Tailwind CSS + Shadcn UI",
+                    "Modern User Experience",
+                  ],
+                  [
+                    "Authentication",
+                    "Firebase Authentication",
+                    "User Login & Identity Management",
+                  ],
+                  [
+                    "Backend",
+                    "Next.js API Routes",
+                    "API Gateway",
+                  ],
+                  [
+                    "AI Model",
+                    "Gemini 2.5 Flash",
+                    "Chat & Intelligence Generation",
+                  ],
+                  ["Web Search", "Tavily API", "Real-Time Search"],
+                  [
+                    "Deep Research",
+                    "Tavily + Firecrawl",
+                    "Multi-step Research",
+                  ],
+                  [
+                    "Payment Gateway",
+                    "Stripe",
+                    "Credit Purchases, Subscriptions, Billing",
+                  ],
+                  [
+                    "Database",
+                    "Google Cloud SQL (PostgreSQL)",
+                    "Users, Chats, Audit Logs, Metadata",
+                  ],
+                  [
+                    "Cache",
+                    "Redis (Memorystore / Upstash)",
+                    "Response & Session Cache",
+                  ],
+                  [
+                    "File Storage",
+                    "Google Cloud Storage",
+                    "Documents & Uploads",
+                  ],
+                  [
+                    "Vector Search",
+                    "pgvector / Vertex AI Vector Search",
+                    "Semantic Search & RAG",
+                  ],
+                  [
+                    "Event Pipeline",
+                    "Google Pub/Sub",
+                    "Event Streaming",
+                  ],
+                  [
+                    "Data Warehouse",
+                    "BigQuery",
+                    "Intelligence & Analytics",
+                  ],
+                  [
+                    "Monitoring",
+                    "Cloud Monitoring + Sentry",
+                    "Logs & Error Tracking",
+                  ],
+                  [
+                    "Deployment",
+                    "Cloud Run",
+                    "Backend Services",
+                  ],
+                  [
+                    "CI/CD",
+                    "GitHub Actions + Cloud Build",
+                    "Automated Deployment",
+                  ],
+                ]}
+              />
             </Section>
 
             <Section id="system-map" title="System map">
