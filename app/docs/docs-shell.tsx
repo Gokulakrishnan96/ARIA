@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { AppWindow, Github, Layers } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { AriaLogo } from "@/components/aria/aria-logo";
 import { cn } from "@/lib/utils";
 
 type NavItem = { id: string; label: string };
@@ -9,9 +11,9 @@ type NavGroup = { title: string; items: NavItem[] };
 
 const NAV: NavGroup[] = [
   {
-    title: "Start here",
+    title: "Get started",
     items: [
-      { id: "introduction", label: "Introduction" },
+      { id: "overview", label: "Introduction" },
       { id: "positioning", label: "Product positioning" },
       { id: "quickstart", label: "Quickstart" },
     ],
@@ -36,14 +38,14 @@ const NAV: NavGroup[] = [
     ],
   },
   {
-    title: "API & contracts",
+    title: "API",
     items: [
       { id: "api", label: "Chat API" },
       { id: "contracts", label: "Contracts" },
     ],
   },
   {
-    title: "Platform roadmap",
+    title: "Roadmap",
     items: [
       { id: "bnii-surfaces", label: "BNII surfaces" },
       { id: "priorities", label: "Build priorities" },
@@ -55,35 +57,52 @@ const NAV: NavGroup[] = [
 function Section({
   id,
   title,
-  eyebrow,
   children,
 }: {
   id: string;
   title: string;
-  eyebrow?: string;
   children: React.ReactNode;
 }) {
   return (
-    <section id={id} className="scroll-mt-24 border-b border-white/8 pb-16 pt-10 last:border-b-0">
-      {eyebrow ? (
-        <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.18em] text-neutral-500">
-          {eyebrow}
-        </p>
-      ) : null}
-      <h2 className="text-2xl font-semibold tracking-tight text-neutral-50 sm:text-3xl">
+    <section
+      id={id}
+      className="scroll-mt-24 border-b border-[#1f1f1f] py-12 last:border-b-0"
+    >
+      <h2 className="text-[1.75rem] font-semibold tracking-tight text-white">
         {title}
       </h2>
-      <div className="mt-6 space-y-4 text-[15px] leading-7 text-neutral-300">{children}</div>
+      <div className="mt-5 space-y-4 text-[15px] leading-7 text-[#c4c4c4]">
+        {children}
+      </div>
     </section>
   );
 }
 
 function H3({ children }: { children: React.ReactNode }) {
-  return <h3 className="!mt-8 text-lg font-medium text-neutral-100">{children}</h3>;
+  return (
+    <h3 className="!mt-8 text-lg font-semibold tracking-tight text-white">
+      {children}
+    </h3>
+  );
 }
 
 function P({ children }: { children: React.ReactNode }) {
-  return <p className="text-neutral-300">{children}</p>;
+  return <p>{children}</p>;
+}
+
+function Callout({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-xl border border-[#18E299]/25 bg-[#18E299]/[0.06] px-4 py-3.5">
+      <p className="text-sm font-semibold text-[#18E299]">{title}</p>
+      <div className="mt-1 text-sm leading-6 text-[#b7e8d3]">{children}</div>
+    </div>
+  );
 }
 
 function Table({
@@ -94,15 +113,12 @@ function Table({
   rows: React.ReactNode[][];
 }) {
   return (
-    <div className="overflow-x-auto rounded-xl border border-white/10 bg-[#0c0c0c]">
-      <table className="w-full min-w-[560px] border-collapse text-left text-sm">
+    <div className="overflow-x-auto rounded-xl border border-[#2a2a2a]">
+      <table className="w-full min-w-[520px] border-collapse text-left text-sm">
         <thead>
-          <tr className="border-b border-white/10 bg-white/[0.03]">
+          <tr className="border-b border-[#2a2a2a] bg-[#141414]">
             {headers.map((h) => (
-              <th
-                key={h}
-                className="px-4 py-3 font-medium text-neutral-200"
-              >
+              <th key={h} className="px-4 py-3 font-medium text-[#e8e8e8]">
                 {h}
               </th>
             ))}
@@ -110,9 +126,12 @@ function Table({
         </thead>
         <tbody>
           {rows.map((row, i) => (
-            <tr key={i} className="border-b border-white/6 last:border-b-0">
+            <tr
+              key={i}
+              className="border-b border-[#1f1f1f] last:border-b-0 hover:bg-white/[0.02]"
+            >
               {row.map((cell, j) => (
-                <td key={j} className="px-4 py-3 align-top text-neutral-400">
+                <td key={j} className="px-4 py-3 align-top text-[#a3a3a3]">
                   {cell}
                 </td>
               ))}
@@ -126,39 +145,105 @@ function Table({
 
 function Code({ children }: { children: React.ReactNode }) {
   return (
-    <pre className="overflow-x-auto rounded-xl border border-white/10 bg-[#080808] p-4 font-mono text-[12.5px] leading-6 text-neutral-300">
+    <pre className="overflow-x-auto rounded-xl border border-[#2a2a2a] bg-[#0d0d0d] p-4 font-mono text-[12.5px] leading-6 text-[#c4c4c4]">
       <code>{children}</code>
     </pre>
   );
 }
 
-function Callout({
-  title,
-  children,
+function FlowNode({
+  label,
+  accent,
+  sub,
 }: {
-  title: string;
-  children: React.ReactNode;
+  label: string;
+  accent?: boolean;
+  sub?: string;
 }) {
   return (
-    <div className="rounded-xl border border-amber-500/25 bg-amber-500/[0.06] px-4 py-3 text-sm text-amber-100/90">
-      <p className="font-medium text-amber-200">{title}</p>
-      <div className="mt-1 text-amber-100/75">{children}</div>
+    <div
+      className={cn(
+        "shrink-0 rounded-lg border px-3 py-2.5 text-center",
+        accent
+          ? "border-[#18E299]/40 bg-[#18E299]/10"
+          : "border-[#2a2a2a] bg-[#141414]",
+      )}
+    >
+      <p
+        className={cn(
+          "text-[12.5px] font-medium",
+          accent ? "text-[#18E299]" : "text-[#e8e8e8]",
+        )}
+      >
+        {label}
+      </p>
+      {sub ? (
+        <p className="mt-0.5 text-[10.5px] text-[#737373]">{sub}</p>
+      ) : null}
     </div>
   );
 }
 
-function Diagram({ children }: { children: React.ReactNode }) {
+function BniiPlatformFlow() {
+  const spine = [
+    "Partner Apps",
+    "Event Pipeline",
+    "Consent Layer",
+    "Classification Engine",
+    "Governed Data Lake",
+  ];
+  const surfaces: { label: string; sub?: string; accent?: boolean }[] = [
+    { label: "Intelligence APIs" },
+    { label: "AI Query Engine", sub: "Aria", accent: true },
+    { label: "Customer Models" },
+    { label: "Execution Environment" },
+  ];
+
   return (
-    <div className="rounded-xl border border-white/10 bg-[radial-gradient(ellipse_at_top,_rgba(255,255,255,0.04),_transparent_55%),#080808] p-5 font-mono text-[11.5px] leading-5 text-neutral-400 sm:text-[12.5px] sm:leading-6">
-      {children}
+    <div className="overflow-x-auto rounded-xl border border-[#2a2a2a] bg-[#0d0d0d] p-5">
+      <p className="mb-4 text-[11px] font-medium uppercase tracking-[0.14em] text-[#666]">
+        Platform data path
+      </p>
+      <div className="flex min-w-max items-center gap-1.5">
+        {spine.map((label, i) => (
+          <div key={label} className="flex items-center gap-1.5">
+            {i > 0 ? (
+              <span className="text-[#555]" aria-hidden>
+                →
+              </span>
+            ) : null}
+            <FlowNode
+              label={label}
+              accent={label === "Governed Data Lake"}
+            />
+          </div>
+        ))}
+      </div>
+      <div className="mt-6 grid min-w-[36rem] grid-cols-4 gap-2 border-t border-dashed border-[#2a2a2a] pt-5">
+        {surfaces.map((s) => (
+          <div key={s.label} className="flex flex-col items-center gap-2">
+            <span className="text-[11px] text-[#555]" aria-hidden>
+              ↓
+            </span>
+            <div className="w-full">
+              <FlowNode label={s.label} sub={s.sub} accent={s.accent} />
+            </div>
+          </div>
+        ))}
+      </div>
+      <p className="mt-5 text-[13px] leading-6 text-[#888]">
+        Aria sits on the{" "}
+        <span className="text-[#c4c4c4]">AI Query Engine</span> surface —
+        consuming governed intelligence. Raw signal never reaches the chat
+        boundary.
+      </p>
     </div>
   );
 }
 
 export function DocsShell() {
-  const [active, setActive] = useState("introduction");
+  const [active, setActive] = useState("overview");
   const [mobileOpen, setMobileOpen] = useState(false);
-
   const flatIds = useMemo(
     () => NAV.flatMap((g) => g.items.map((i) => i.id)),
     [],
@@ -185,61 +270,69 @@ export function DocsShell() {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] text-neutral-200">
-      {/* Top bar */}
-      <header className="sticky top-0 z-40 border-b border-white/8 bg-[#050505]/90 backdrop-blur-md">
-        <div className="mx-auto flex h-14 max-w-[1400px] items-center justify-between px-4 sm:px-6">
+    <div className="min-h-screen bg-[#0a0a0a] text-[#c4c4c4]">
+      {/* Mintlify-style top bar */}
+      <header className="sticky top-0 z-50 border-b border-[#1f1f1f] bg-[#0a0a0a]/95 backdrop-blur-md">
+        <div className="mx-auto flex h-14 max-w-[1400px] items-center justify-between gap-4 px-4 sm:px-6">
           <div className="flex items-center gap-3">
             <button
               type="button"
-              className="rounded-md border border-white/10 px-2 py-1 text-xs text-neutral-300 lg:hidden"
+              className="rounded-md border border-[#2a2a2a] px-2 py-1 text-xs text-[#a3a3a3] lg:hidden"
               onClick={() => setMobileOpen((v) => !v)}
             >
               Menu
             </button>
-            <Link href="/docs" className="flex items-center gap-2">
-              <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-white text-[11px] font-bold text-black">
-                A
-              </span>
-              <span className="text-sm font-semibold tracking-tight text-white">
-                Aria Docs
-              </span>
+            <Link href="/docs" className="flex items-center gap-2.5">
+              <AriaLogo className="h-6 w-auto text-white" />
+              <span className="text-sm font-semibold text-white">Aria Docs</span>
             </Link>
-            <span className="hidden rounded-full border border-white/10 px-2 py-0.5 font-mono text-[10px] text-neutral-500 sm:inline">
-              v0.1 · internal
+            <span className="hidden rounded-full border border-[#2a2a2a] bg-[#141414] px-2 py-0.5 text-[10px] font-medium text-[#888] sm:inline">
+              Internal
             </span>
           </div>
-          <div className="flex items-center gap-3 text-sm">
+          <nav className="flex items-center gap-1">
+            <Link
+              href="/docs/architecture"
+              title="Architecture"
+              aria-label="Architecture"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-[#a3a3a3] transition hover:bg-white/[0.06] hover:text-white"
+            >
+              <Layers className="h-[18px] w-[18px]" strokeWidth={1.75} />
+            </Link>
             <Link
               href="/"
-              className="text-neutral-400 transition hover:text-white"
+              title="Open app"
+              aria-label="Open app"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-[#a3a3a3] transition hover:bg-white/[0.06] hover:text-white"
             >
-              Open app
+              <AppWindow className="h-[18px] w-[18px]" strokeWidth={1.75} />
             </Link>
             <a
               href="https://github.com/Gokulakrishnan96/ARIA"
               target="_blank"
               rel="noreferrer"
-              className="hidden text-neutral-400 transition hover:text-white sm:inline"
+              title="GitHub"
+              aria-label="GitHub"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-[#a3a3a3] transition hover:bg-white/[0.06] hover:text-white"
             >
-              GitHub
+              <Github className="h-[18px] w-[18px]" strokeWidth={1.75} />
             </a>
-          </div>
+          </nav>
         </div>
       </header>
 
       <div className="mx-auto flex max-w-[1400px]">
-        {/* Sidebar */}
+        {/* Mintlify-style sidebar */}
         <aside
           className={cn(
-            "fixed inset-y-14 left-0 z-30 w-72 overflow-y-auto border-r border-white/8 bg-[#050505] p-5 transition lg:static lg:block lg:h-[calc(100vh-3.5rem)] lg:sticky lg:top-14",
+            "fixed inset-y-14 left-0 z-40 w-[260px] overflow-y-auto border-r border-[#1f1f1f] bg-[#0a0a0a] px-4 py-6 lg:sticky lg:top-14 lg:block lg:h-[calc(100vh-3.5rem)]",
             mobileOpen ? "block" : "hidden",
           )}
         >
           <nav className="space-y-6">
             {NAV.map((group) => (
               <div key={group.title}>
-                <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-600">
+                <p className="mb-2 px-2.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#666]">
                   {group.title}
                 </p>
                 <ul className="space-y-0.5">
@@ -249,10 +342,10 @@ export function DocsShell() {
                         type="button"
                         onClick={() => jump(item.id)}
                         className={cn(
-                          "w-full rounded-md px-2.5 py-1.5 text-left text-[13px] transition",
+                          "w-full rounded-lg px-2.5 py-1.5 text-left text-[13.5px] transition",
                           active === item.id
-                            ? "bg-white/8 text-white"
-                            : "text-neutral-400 hover:bg-white/[0.04] hover:text-neutral-200",
+                            ? "bg-[#18E299]/10 font-medium text-[#18E299]"
+                            : "text-[#a3a3a3] hover:bg-white/[0.04] hover:text-white",
                         )}
                       >
                         {item.label}
@@ -263,42 +356,60 @@ export function DocsShell() {
               </div>
             ))}
           </nav>
+
+          <div className="mt-8 border-t border-[#1f1f1f] pt-4">
+            <Link
+              href="/docs/architecture"
+              className="block rounded-lg px-2.5 py-2 text-[13px] text-[#888] transition hover:bg-white/[0.04] hover:text-white"
+            >
+              Full architecture board →
+            </Link>
+          </div>
         </aside>
 
         {/* Content */}
-        <main className="min-w-0 flex-1 px-4 py-8 sm:px-8 lg:px-12 lg:py-10">
-          <div className="mb-10 max-w-3xl">
-            <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-neutral-500">
-              Canonical architecture documentation
-            </p>
-            <h1 className="mt-3 text-4xl font-semibold tracking-tight text-white sm:text-5xl">
+        <main className="min-w-0 flex-1 px-4 py-10 sm:px-8 lg:px-12 lg:py-12">
+          <article className="mx-auto max-w-[720px]">
+            <div className="mb-3 flex items-center gap-2 text-[13px] text-[#666]">
+              <span>Internal documentation</span>
+              <span aria-hidden>·</span>
+              <span>v0.1</span>
+            </div>
+            <h1 className="text-4xl font-semibold tracking-tight text-white sm:text-[2.75rem]">
               Aria
             </h1>
-            <p className="mt-4 max-w-2xl text-base leading-7 text-neutral-400">
-              Research-first intelligence interface. Documented for build
+            <p className="mt-4 text-[16px] leading-7 text-[#a3a3a3]">
+              Research-first intelligence interface. Internal docs for build
               owners — what exists, what must not drift, and what BNII surfaces
-              require before we write the next layer of code.
+              require before the next layer of code.
             </p>
-            <Callout title="Review gate">
-              Documentation only. Credits, APIs, dual-write schemas, and
-              tenant execution start after this pack is confirmed.
-            </Callout>
-          </div>
 
-          <div className="max-w-3xl">
-            <Section id="introduction" title="Introduction" eyebrow="Start here">
-              <P>
-                Aria is the research-first intelligence interface for
-                decision-makers. Today it is a production-grade chat and
-                deep-research product. Tomorrow it is the primary consumption
-                surface for BNII — behavioural network intelligence from
-                consented, in-market consumer signal across emerging markets.
-              </P>
+            <div className="mt-6">
+              <Callout title="Internal documentation">
+                Architecture, contracts, and build priorities for owners.
+                Credits, APIs, dual-write schemas, and tenant execution start
+                only after this pack is confirmed.
+              </Callout>
+            </div>
+
+            <div id="overview" className="scroll-mt-24 mt-12 space-y-4">
+              <H3>Platform flow</H3>
+              <BniiPlatformFlow />
+              <p className="text-[13px]">
+                <Link
+                  href="/docs/architecture"
+                  className="font-medium text-[#18E299] hover:underline"
+                >
+                  Open full architecture →
+                </Link>
+              </p>
+
               <H3>One-line thesis</H3>
               <P>
                 Anyone can rent a frontier model. No one can rent the position
                 it reasons from.
               </P>
+
               <H3>What exists now</H3>
               <Table
                 headers={["Layer", "Status"]}
@@ -314,32 +425,25 @@ export function DocsShell() {
                   ["BYOD / run-on-infra", "Not built"],
                 ]}
               />
-            </Section>
+            </div>
 
-            <Section id="positioning" title="Product positioning" eyebrow="Start here">
+            <Section id="positioning" title="Product positioning">
               <P>
                 The intelligence industry sees the top and middle of markets
                 well, and the bottom of emerging markets barely at all.
                 Embedded inside partner apps — telco, wallet, bank — we
                 generate consented behavioural signal at the point of action.
                 BNII turns that position into sellable, market-level
-                intelligence. Aria is the human-facing answer surface.
+                intelligence. Aria is the human-facing{" "}
+                <span className="text-white">AI Query Engine</span> surface on
+                the platform data path above.
               </P>
-              <Diagram>
-                {`Partner apps → consented events → BNII intelligence layer → Aria`}
-              </Diagram>
               <H3>Why now</H3>
               <Table
                 headers={["Fact", "Implication"]}
                 rows={[
-                  [
-                    "~384M monthly transacting users",
-                    "The position is live today",
-                  ],
-                  [
-                    "Frontier models are rentable",
-                    "Models are no longer the scarce asset",
-                  ],
+                  ["~384M monthly transacting users", "The position is live today"],
+                  ["Frontier models are rentable", "Models are no longer the scarce asset"],
                   [
                     "Embedded footprint is hard to copy",
                     "Window is open; compound advantage",
@@ -347,11 +451,6 @@ export function DocsShell() {
                 ]}
               />
               <H3>Five commercial surfaces — one asset</H3>
-              <P>
-                Every surface sits behind the same consent gates, k-floor, and
-                audit-and-metering ledger. Governance does not weaken with
-                depth — it makes depth sellable.
-              </P>
               <Table
                 headers={["#", "Surface", "Buyer intent"]}
                 rows={[
@@ -359,12 +458,16 @@ export function DocsShell() {
                   ["2", "Build on top", "Intelligence as substrate for their models"],
                   ["3", "Bring your own data", "Theirs × our market backdrop"],
                   ["4", "Data & intelligence APIs", "Pull indices into pipelines"],
-                  ["5", "Run on our infra", "Model to data; raw signal never egresses"],
+                  [
+                    "5",
+                    "Run on our infra",
+                    "Model to data; raw signal never egresses",
+                  ],
                 ]}
               />
             </Section>
 
-            <Section id="quickstart" title="Quickstart" eyebrow="Start here">
+            <Section id="quickstart" title="Quickstart">
               <P>Node.js 20+ and a Google AI Studio API key.</P>
               <Code>{`npm install
 # .env.local
@@ -375,7 +478,43 @@ npm run dev
 # Docs → http://localhost:3000/docs`}</Code>
             </Section>
 
-            <Section id="architecture" title="Architecture overview" eyebrow="Architecture">
+            <Section id="architecture" title="Architecture overview">
+              <P>
+                Platform spine first — Aria is one consumer of the Governed Data
+                Lake, not the data plane itself. See{" "}
+                <a href="#overview" className="font-medium text-[#18E299] hover:underline">
+                  Platform data path
+                </a>{" "}
+                above, or the{" "}
+                <Link
+                  href="/docs/architecture"
+                  className="font-medium text-[#18E299] hover:underline"
+                >
+                  full architecture board
+                </Link>
+                .
+              </P>
+              <Table
+                headers={["Node", "Role"]}
+                rows={[
+                  ["Partner Apps", "Source of consented behavioural signal"],
+                  ["Event Pipeline", "Ingest + dual-write boundary"],
+                  ["Consent Layer", "Gate every downstream use"],
+                  ["Classification Engine", "Labels, segments, quality evals"],
+                  [
+                    "Governed Data Lake",
+                    "k-floor aggregates; single source of truth",
+                  ],
+                  ["Intelligence APIs", "Structured pull for partner pipelines"],
+                  ["AI Query Engine", "Aria — briefs, credits, metered Q&A"],
+                  ["Customer Models", "Build-on-top / BYOD substrate"],
+                  [
+                    "Execution Environment",
+                    "Run-on-infra; model comes to data",
+                  ],
+                ]}
+              />
+              <H3>Aria application stack</H3>
               <Table
                 headers={["Layer", "Choice"]}
                 rows={[
@@ -387,44 +526,57 @@ npm run dev
                 ]}
               />
               <H3>Design principles</H3>
-              <ol className="list-decimal space-y-2 pl-5 text-neutral-300">
-                <li>One write path for answers — all model I/O via <code className="text-neutral-100">POST /api/chat</code>.</li>
-                <li>Search before memory when Search is on — empty research → 503, never silent fallback.</li>
-                <li>Deep Research is a contract, not a vibe — fixed sections, institutional tone.</li>
+              <ol className="list-decimal space-y-2 pl-5">
+                <li>
+                  One write path — all model I/O via{" "}
+                  <code className="rounded bg-[#1a1a1a] px-1.5 py-0.5 text-[13px] text-[#18E299]">
+                    POST /api/chat
+                  </code>
+                  .
+                </li>
+                <li>
+                  Search before memory when Search is on — empty research → 503.
+                </li>
+                <li>
+                  Deep Research is a contract — fixed sections, institutional
+                  tone.
+                </li>
                 <li>Secrets stay server-side.</li>
-                <li>Auditability first — future credits and APIs share one metering ledger.</li>
+                <li>
+                  Auditability first — credits and APIs share one metering
+                  ledger.
+                </li>
               </ol>
             </Section>
 
-            <Section id="system-map" title="System map" eyebrow="Architecture">
-              <Diagram>
-                <pre className="whitespace-pre text-neutral-400">{`
-┌──────────────────────── Browser ────────────────────────┐
-│  AppShell · Sidebar · TopBar · Thread · Composer        │
-│  Zustand prefs · localStorage threads (?chat=)          │
-└───────────────────────┬─────────────────────────────────┘
-                        │ POST /api/chat
-                        ▼
-┌──────────────────── Next.js server ─────────────────────┐
-│  Model router  →  Independent web research  →  streamText │
-│  Nano/Mini/Max     DDG/Bing + page fetch      UI stream │
-└─────────────────────────────────────────────────────────┘
-`.trim()}</pre>
-              </Diagram>
+            <Section id="system-map" title="System map">
               <P>
-                Deliberately absent today: auth, credits ledger, dual-write
-                event pipeline, licensed feeds, tenant-isolated execution,
-                persistent connected-customer data. These are platform work —
-                not client hacks.
+                Aria implements the AI Query Engine box on the platform path.
+                Runtime detail below; spine nodes are listed under Architecture
+                overview.
               </P>
+              <H3>Aria runtime (AI Query Engine)</H3>
+              <Code>{`Browser: AppShell · Thread · Composer · Zustand · localStorage
+        │ POST /api/chat
+        ▼
+Server: Model router → Independent web research → streamText → UI stream`}</Code>
             </Section>
 
-            <Section id="data-flow" title="Data flow" eyebrow="Architecture">
+            <Section id="data-flow" title="Data flow">
               <ol className="list-decimal space-y-2 pl-5">
                 <li>Composer submit → transport reads Zustand flags.</li>
                 <li>Server validates messages; resolves Aria model.</li>
-                <li>If search or deep research: independent research packet → system prompt. Empty → 503.</li>
-                <li>Compose prompt layers → <code className="text-neutral-100">streamText</code> → UI message stream.</li>
+                <li>
+                  If search or deep research: research packet → system prompt.
+                  Empty → 503.
+                </li>
+                <li>
+                  Compose prompt layers →{" "}
+                  <code className="rounded bg-[#1a1a1a] px-1.5 py-0.5 text-[13px] text-[#18E299]">
+                    streamText
+                  </code>{" "}
+                  → UI message stream.
+                </li>
                 <li>Deep Research answers parse into institutional brief UI.</li>
               </ol>
               <H3>Mode matrix</H3>
@@ -437,42 +589,55 @@ npm run dev
                 ]}
               />
               <P>
-                * Enabling Deep Research also forces <code className="text-neutral-100">webSearch: true</code> in the store.
-                With Google + search, answers use Flash Lite free-tier override regardless of Mini/Max selection.
+                * Deep Research forces{" "}
+                <code className="rounded bg-[#1a1a1a] px-1.5 py-0.5 text-[13px] text-[#18E299]">
+                  webSearch: true
+                </code>
+                . With Google + search, answers use Flash Lite free-tier
+                override.
               </P>
             </Section>
 
-            <Section id="trust" title="Trust boundary" eyebrow="Architecture">
+            <Section id="trust" title="Trust boundary">
               <Table
                 headers={["Zone", "Assets"]}
                 rows={[
-                  ["Server-only", "API keys · page fetches · model invocation"],
-                  ["Client-only today", "Threads · prefs · mock profile/usage · exports"],
+                  [
+                    "Server-only",
+                    "API keys · page fetches · model invocation",
+                  ],
+                  [
+                    "Client-only today",
+                    "Threads · prefs · mock profile/usage · exports",
+                  ],
                 ]}
               />
-              <H3>BNII invariants (non-negotiable)</H3>
+              <H3>BNII invariants</H3>
               <ol className="list-decimal space-y-2 pl-5">
                 <li>Consent gates at every surface.</li>
                 <li>k-floor before any market-level release.</li>
                 <li>Audit log ≡ metering ledger — one system.</li>
-                <li>Raw behavioural signal never egresses on deepest surface.</li>
+                <li>
+                  Raw behavioural signal never egresses on deepest surface.
+                </li>
                 <li>Dual-write: operational store ≠ intelligence store.</li>
               </ol>
             </Section>
 
-            <Section id="chat" title="Chat" eyebrow="Capabilities">
+            <Section id="chat" title="Chat">
               <P>
-                Runtime: assistant-ui + AI SDK transport to <code className="text-neutral-100">/api/chat</code>,
-                with remote thread list for Recents and URL sync. Composer exposes
-                model, Search, and Deep Research. Quota errors are rewritten into
-                readable free-tier guidance.
+                Runtime: assistant-ui + AI SDK transport to{" "}
+                <code className="rounded bg-[#1a1a1a] px-1.5 py-0.5 text-[13px] text-[#18E299]">
+                  /api/chat
+                </code>
+                . Composer exposes model, Search, and Deep Research.
               </P>
             </Section>
 
-            <Section id="deep-research" title="Deep Research" eyebrow="Capabilities">
+            <Section id="deep-research" title="Deep Research">
               <P>
-                A methodology surface: strict system prompt + forced web research +
-                client brief parser. Not a multi-agent graph.
+                Methodology surface: strict system prompt + forced web research
+                + client brief parser. Not a multi-agent graph.
               </P>
               <Table
                 headers={["Section", "Purpose"]}
@@ -480,34 +645,35 @@ npm run dev
                   ["Title", "Precise scope"],
                   ["Executive Summary", "Core conclusion first"],
                   ["Key Findings", "Standalone decision-ready statements"],
-                  ["Detailed Analysis", "Context, drivers, evidence, implications"],
-                  ["Areas of Uncertainty", "Mandatory — contested / unresolved"],
+                  [
+                    "Detailed Analysis",
+                    "Context, drivers, evidence, implications",
+                  ],
+                  [
+                    "Areas of Uncertainty",
+                    "Mandatory — contested / unresolved",
+                  ],
                   ["Sources", "Numbered links; body citations must match"],
                 ]}
               />
               <Callout title="Buyer note">
                 Methodology-literate buyers audit discipline, not chat fluency.
-                Uncertainty and source rules are load-bearing — do not soften them.
+                Uncertainty and source rules are load-bearing.
               </Callout>
             </Section>
 
-            <Section id="web-search" title="Web search" eyebrow="Capabilities">
+            <Section id="web-search" title="Web search">
               <P>
-                Aria does <strong className="font-medium text-neutral-100">not</strong> currently
-                use Gemini <code className="text-neutral-100">google_search</code> grounding.
-                Independent pipeline: normalize → DDG/Bing → fetch pages → findings
-                packet → answer only from that packet.
-              </P>
-              <Diagram>
-                {`query → normalize → search HTML → score URLs → fetch pages → findings + sources → system prompt`}
-              </Diagram>
-              <P>
-                Production credibility eventually requires licensed feeds; scrapers
-                remain enrichment, not source of truth for commercial claims.
+                Independent pipeline (not Gemini{" "}
+                <code className="rounded bg-[#1a1a1a] px-1.5 py-0.5 text-[13px] text-[#18E299]">
+                  google_search
+                </code>
+                ): normalize → DDG/Bing → fetch pages → findings packet → answer
+                only from that packet.
               </P>
             </Section>
 
-            <Section id="models" title="Models" eyebrow="Capabilities">
+            <Section id="models" title="Models">
               <Table
                 headers={["UI", "Id", "Provider model"]}
                 rows={[
@@ -518,22 +684,26 @@ npm run dev
               />
             </Section>
 
-            <Section id="export" title="Export & share" eyebrow="Capabilities">
+            <Section id="export" title="Export & share">
               <P>
-                Share copies <code className="text-neutral-100">?chat=&lt;id&gt;</code> — same-browser only.
-                Export: PDF, DOCX, PPTX, XLSX, CSV, JSON (client-side). Cross-device
-                share needs persistent message storage designed with the metering ledger.
+                Share copies{" "}
+                <code className="rounded bg-[#1a1a1a] px-1.5 py-0.5 text-[13px] text-[#18E299]">
+                  ?chat=&lt;id&gt;
+                </code>{" "}
+                — same-browser only. Export: PDF, DOCX, PPTX, XLSX, CSV, JSON.
               </P>
             </Section>
 
-            <Section id="api" title="Chat API" eyebrow="API & contracts">
+            <Section id="api" title="Chat API">
               <P>
-                <code className="text-neutral-100">POST /api/chat</code> — sole backend endpoint.
+                <code className="rounded bg-[#1a1a1a] px-1.5 py-0.5 text-[13px] text-[#18E299]">
+                  POST /api/chat
+                </code>{" "}
+                — sole backend endpoint.
               </P>
               <Code>{`{
-  messages: UIMessage[];          // required
+  messages: UIMessage[];
   system?: string;
-  tools?: Record<string, { description?: string; parameters: JSONSchema7 }>;
   model?: "aria-nano" | "aria-mini" | "aria-max";
   deepResearch?: boolean;
   webSearch?: boolean;
@@ -549,7 +719,7 @@ npm run dev
               />
             </Section>
 
-            <Section id="contracts" title="Contracts" eyebrow="API & contracts">
+            <Section id="contracts" title="Contracts">
               <Table
                 headers={["Variable", "Required"]}
                 rows={[
@@ -557,46 +727,40 @@ npm run dev
                   ["OPENAI_API_KEY", "Only if provider is openai"],
                 ]}
               />
-              <P>
-                Persistence: <code className="text-neutral-100">aria-ui-v3</code> (prefs),{" "}
-                <code className="text-neutral-100">aria:threads</code> (recents). Brief heading
-                labels are a stable contract for the parser. Future audit event
-                schema becomes a public contract for billing and compliance.
-              </P>
             </Section>
 
-            <Section id="bnii-surfaces" title="BNII surfaces" eyebrow="Platform roadmap">
+            <Section id="bnii-surfaces" title="BNII surfaces">
               <ol className="list-decimal space-y-3 pl-5">
                 <li>
-                  <strong className="text-neutral-100">Credits</strong> — metered pools;
-                  audit log is the billing ledger. Build as one system.
+                  <span className="text-white">Credits</span> — audit log is
+                  the billing ledger.
                 </li>
                 <li>
-                  <strong className="text-neutral-100">Build on top</strong> — intelligence
-                  as substrate for customer models.
+                  <span className="text-white">Build on top</span> —
+                  intelligence as substrate.
                 </li>
                 <li>
-                  <strong className="text-neutral-100">Bring your own data</strong> — theirs
-                  × our market backdrop.
+                  <span className="text-white">Bring your own data</span> —
+                  theirs × our market backdrop.
                 </li>
                 <li>
-                  <strong className="text-neutral-100">Data & intelligence APIs</strong> —
-                  governed datasets and indices into their pipelines.
+                  <span className="text-white">Data & intelligence APIs</span> —
+                  governed pull into pipelines.
                 </li>
                 <li>
-                  <strong className="text-neutral-100">Run on our infra</strong> — model
-                  comes to data; raw signal never egresses.
+                  <span className="text-white">Run on our infra</span> — model
+                  to data; no raw egress.
                 </li>
               </ol>
             </Section>
 
-            <Section id="priorities" title="Build priorities" eyebrow="Platform roadmap">
+            <Section id="priorities" title="Build priorities">
               <Table
                 headers={["P", "Workstream", "Why now"]}
                 rows={[
                   ["P0", "Event pipeline", "Nothing downstream is credible without it"],
                   ["P0", "Methodology surface", "What buyers audit"],
-                  ["P0", "Dual-write schema boundary", "Compliance + irreversible coupling risk"],
+                  ["P0", "Dual-write schema boundary", "Compliance + coupling risk"],
                   ["P1", "Metering + credit layer", "Audit = billing; one system"],
                   ["P1", "Classification-quality evals", "Survive methodology RFPs"],
                   ["P1", "Licensed feeds", "Source credibility for commercial claims"],
@@ -604,32 +768,9 @@ npm run dev
                   ["P2", "Tenant-isolated execution", "Deepest surface without egress"],
                 ]}
               />
-              <H3>Pressure tests (where I disagree with soft sequencing)</H3>
-              <ol className="list-decimal space-y-3 pl-5">
-                <li>
-                  <strong className="text-neutral-100">Credits before APIs</strong> — design
-                  the audit event schema first; meter chat immediately; reuse the
-                  same meter on APIs. Never invent a second billing path.
-                </li>
-                <li>
-                  <strong className="text-neutral-100">Scrapers ≠ truth</strong> —
-                  fine for Aria v0; licensed feeds + partner signal must dominate
-                  commercial claims.
-                </li>
-                <li>
-                  <strong className="text-neutral-100">Prompt before agent graphs</strong> —
-                  keep the Deep Research contract until evals prove failure modes.
-                  Multi-agent without evals is un-auditable theatre.
-                </li>
-                <li>
-                  <strong className="text-neutral-100">k-floor at release boundary</strong> —
-                  enforce when datasets/indices publish, not only in the chat UI.
-                  Chat is one consumer.
-                </li>
-              </ol>
             </Section>
 
-            <Section id="governance" title="Governance" eyebrow="Platform roadmap">
+            <Section id="governance" title="Governance">
               <Table
                 headers={["Gate", "Meaning"]}
                 rows={[
@@ -638,22 +779,12 @@ npm run dev
                   ["Audit + meter", "Every query/pull/job is durable + billable"],
                 ]}
               />
-              <P>
-                Aria does not implement these gates yet. This documentation states
-                them so implementation cannot invent per-feature exceptions later.
-              </P>
-              <div className="mt-10 rounded-xl border border-white/10 bg-white/[0.03] p-5">
-                <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-neutral-500">
-                  Next step
-                </p>
-                <p className="mt-2 text-neutral-200">
-                  Review this pack. Confirm or mark disagreements. After sign-off
-                  we implement in order: event schema → methodology evals →
-                  metering/credits → APIs — not the reverse.
-                </p>
-              </div>
+              <Callout title="Next step">
+                Confirm this pack. After sign-off: event schema → methodology
+                evals → metering/credits → APIs — not the reverse.
+              </Callout>
             </Section>
-          </div>
+          </article>
         </main>
       </div>
     </div>

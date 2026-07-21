@@ -1,10 +1,10 @@
-# Aria documentation
+# Aria — Internal documentation
 
-Canonical architecture docs for Aria (Mintlify-compatible source + black-theme viewer).
+Internal architecture docs for Aria (Mintlify-compatible source + black-theme viewer).
 
 | Surface | Path |
 | --- | --- |
-| **Live viewer (black theme)** | [`/docs`](http://localhost:3000/docs) in the running app |
+| **Live viewer** | [`/docs`](http://localhost:3000/docs) in the running app |
 | **Mintlify sources** | This folder (`docs/*.mdx`, `docs/mint.json`) |
 
 ## Publish with Mintlify (optional)

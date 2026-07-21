@@ -24,7 +24,11 @@ Because we are embedded inside the apps those consumers already use — as their
 Aria is the **human-facing intelligence surface**: institutional briefs, cited answers, and eventually metered queries against governed datasets. It is not the data plane. It consumes (and will later meter) intelligence that BNII produces.
 
 ```
-Partner apps → consented events → BNII intelligence layer → Aria (answers / briefs / APIs)
+Partner Apps → Event Pipeline → Consent Layer → Classification Engine → Governed Data Lake
+                                                                              ├→ Intelligence APIs
+                                                                              ├→ AI Query Engine (Aria)
+                                                                              ├→ Customer Models
+                                                                              └→ Execution Environment
 ```
 
 ## Five commercial surfaces — one asset

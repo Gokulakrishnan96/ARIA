@@ -5,7 +5,23 @@ description: Stack, runtime, and design principles.
 
 # Architecture overview
 
-## Stack
+## Platform data path
+
+Aria is one consumer of the Governed Data Lake — the **AI Query Engine** — not the data plane itself.
+
+```mermaid
+flowchart LR
+  A[Partner Apps] --> B[Event Pipeline]
+  B --> C[Consent Layer]
+  C --> D[Classification Engine]
+  D --> E[Governed Data Lake]
+  E --> F[Intelligence APIs]
+  E --> G[AI Query Engine]
+  E --> H[Customer Models]
+  E --> I[Execution Environment]
+```
+
+## Aria application stack
 
 | Layer | Choice |
 | --- | --- |

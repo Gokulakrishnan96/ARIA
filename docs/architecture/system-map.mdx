@@ -1,11 +1,39 @@
 ---
 title: System map
-description: Logical components and how they compose.
+description: Canonical BNII platform flow and Aria runtime.
 ---
 
 # System map
 
-## Logical components
+## Platform data path
+
+Canonical BNII flow. Aria implements the **AI Query Engine** box today; the spine and other surfaces are platform roadmap.
+
+```mermaid
+flowchart LR
+  A[Partner Apps] --> B[Event Pipeline]
+  B --> C[Consent Layer]
+  C --> D[Classification Engine]
+  D --> E[Governed Data Lake]
+  E --> F[Intelligence APIs]
+  E --> G[AI Query Engine]
+  E --> H[Customer Models]
+  E --> I[Execution Environment]
+```
+
+| Node | Role |
+| --- | --- |
+| Partner Apps | Source of consented behavioural signal |
+| Event Pipeline | Ingest + dual-write boundary |
+| Consent Layer | Gate every downstream use |
+| Classification Engine | Labels, segments, quality evals |
+| Governed Data Lake | k-floor aggregates; single source of truth |
+| Intelligence APIs | Structured pull for partner pipelines |
+| AI Query Engine | **Aria** — briefs, credits, metered Q&A |
+| Customer Models | Build-on-top / BYOD substrate |
+| Execution Environment | Run-on-infra; model comes to data |
+
+## Aria runtime (AI Query Engine)
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -29,30 +57,14 @@ description: Logical components and how they compose.
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## UI composition
+## Still to build on the spine
 
-```
-page.tsx
-└── Assistant
-    └── AssistantRuntimeProvider
-        └── AppShell
-            ├── ChatSidebar (Recents, profile footer, settings)
-            ├── AriaTopBar (share / export / new chat)
-            └── Thread
-                ├── Messages → ResearchBrief | Markdown
-                └── Composer
-                    ├── WebSearchToggle
-                    ├── DeepResearchToggle
-                    └── ModelSelector
-```
+- Event pipeline + dual-write
+- Consent enforcement at release
+- Classification-quality evals
+- Governed data lake
+- Intelligence APIs
+- Customer-model substrate
+- Tenant-isolated execution environment
 
-## What is deliberately not in the map (yet)
-
-- Auth / identity provider
-- Credits ledger / metering service
-- Dual-write event pipeline into warehouse
-- Licensed feed connectors
-- Tenant-isolated model execution environment
-- Persistent connected-customer data store
-
-These belong to the BNII platform roadmap and must not be bolted onto Aria as one-off client hacks.
+Do not bolt these onto Aria as one-off client hacks.
